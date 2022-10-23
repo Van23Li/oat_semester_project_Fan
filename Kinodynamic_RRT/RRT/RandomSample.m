@@ -1,9 +1,8 @@
-function x = RandomSample (obs,q_min,q_max,dim,cfg)
+function x = RandomSample (obs,cfg)
 % Generate a random freespace configuration for the robot
 % return [q1; q2]
 while true
-%     x = 360*rand(dim,1);
-    x = q_min(1:dim)' + (q_max(1:dim) - q_min(1:dim))' .* rand(dim,1);
+    x = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim) - cfg.q_min(1:cfg.dim))' .* rand(cfg.dim,1);
     if cfg.NN_check
         pos_enc = @(x)[x sin(x) cos(x)];
         if cfg.circle_obs
@@ -11,6 +10,10 @@ while true
             val = cfg.y_f(inp);
 
             if ~sum(val<=obs.radiuses'+0.5)
+                if cfg.kinodynamic
+                    v = cfg.v_min(1:cfg.dim)' + (cfg.v_max(1:cfg.dim) - cfg.v_min(1:cfg.dim))' .* rand(cfg.dim,1);
+                    x = [x; v];
+                end
                 return
             end
         else
@@ -43,10 +46,11 @@ while true
         
         
     else
-    fv = ThreeLinkRobot (x,dim);
+        fv = ThreeLinkRobot (x,cfg.dim);
+
+        if (~CollisionCheck(fv, obs))
+            return
+        end
+    end
     
-    if (~CollisionCheck(fv, obs))
-        return
-    end
-    end
 end

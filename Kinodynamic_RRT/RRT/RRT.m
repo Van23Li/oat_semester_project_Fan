@@ -47,6 +47,8 @@ if cfg.display1 || cfg.display2 || cfg.display3
     handle.Quiver_3 = [];
     handle.r_h_dy = [];
     handle.anime = [];
+else
+    handle = [];
 end
 
 RRTree = double([cfg.start_coords; 0; -1]); % The index of the starting point is set to - 1,
@@ -94,7 +96,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
             end
         end
     else
-        if rand <= 0.5   % Sampling randomly or moving towards the target
+        if rand <= 1   % Sampling randomly or moving towards the target
             sample = RandomSample();    %[q1;q2]
             counter_rand = counter_rand + 1;
         else
@@ -104,18 +106,29 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     end
     %% Find the closest node.
     % Calculate the distance from sample to each nodes in RRT tree.
-    [closestNode, closestNode_int, M, I] = nearest(@Dist,sample, RRTree, cfg);
+    if cfg.kinodynamic
+        [closestNode, closestNode_int, M, I, T] = nearest_kd(sample, RRTree, cfg);
+    else
+        [closestNode, closestNode_int, M, I] = nearest(@Dist,sample, RRTree, cfg);
+    end
     
     %% Calculate the new node
-    if M > cfg.stepsize
-        newPoint = closestNode + (sample-closestNode)/norm(sample-closestNode, 2) * cfg.stepsize;
+    if cfg.kinodynamic
+        Steer(closestNode, sample)
+        
+        
+        
     else
-        newPoint = sample;  % [q1; q2]
+        if M > cfg.stepsize
+            newPoint = closestNode + (sample-closestNode)/norm(sample-closestNode, 2) * cfg.stepsize;
+        else
+            newPoint = sample;  % [q1; q2]
+        end
     end
     
     %% collision checking
     % Chech wheter the path from closest node to new node is available
-    [collided, collidedPose, ObsPoint] = checkPath(closestNode, newPoint, obs, cfg.dim, cfg.NN_check, cfg.y_f, cfg.circle_obs);
+    [collided, collidedPose, ObsPoint] = checkPath(closestNode(1:cfg.dim), newPoint(1:cfg.dim), obs, cfg.dim, cfg.NN_check, cfg.y_f, cfg.circle_obs);
     
     %% if cfg.grad_heuristic = Ture, obtain a new p_new based on grad heuristic when collisied,
     % otherwise, discard it directly %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -124,6 +137,9 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
         if cfg.grad_heuristic && closestNode_int > 0
             [newPoint_RRTstar, Joint] = NewNodeGrad(pos_enc, closestNode, ...
                 collidedPose, ObsPoint, closestNode_int, RRTree, cfg);
+        else
+            failedAttempts = failedAttempts+1;
+            continue;
         end
         
         % visualize collied point
@@ -164,7 +180,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     
     %% RRT* or RRT
     if cfg.RRT_star
-        [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg);
+        [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg, handle);
     else
         % Add the new node to the RRT tree
         RRTree = [RRTree, [newPoint; RRTree(cfg.dim+1,I) + cfg.stepsize ;I]];
@@ -447,7 +463,7 @@ newPoint_RRTstar = closestNode + cfg.stepsize * (d_vector - projection)/norm(d_v
 end
 
 %%
-function [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg)
+function [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg, handle)
 
 %         search nodes in a circle of radius 'cfg.RadiusForNeib'
 [Idx,D] = rangesearch(RRTree(1:cfg.dim,:)',newPoint',cfg.RadiusForNeib);
