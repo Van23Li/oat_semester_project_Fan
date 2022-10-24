@@ -13,8 +13,8 @@ cfg.kinodynamic = true;
 cfg.circle_obs = true;  % when equals to true, assuming the obstacle as a 
                       % sphere;  when equals to false, dividing it to many points.
 cfg.display1 = false;
-cfg.display2 = false;
-cfg.display3 = false;   % whether to plot figure 1, 2, 3 during planning.
+cfg.display2 = true;
+cfg.display3 = true;   % whether to plot figure 1, 2, 3 during planning.
 cfg.display4 = true;    % whether to plot figure after planning.
 cfg.maxSample = 2000;  % the maximum number of random samples.
 
@@ -87,9 +87,13 @@ while collided1 || collided2
     if cfg.dim == 2
         %         cfg.start_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
         %         cfg.end_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
-        
-        cfg.start_coords = [-2.2; -1; 1.0; 1.0];  % [q1; q2; v1; v2]
-        cfg.end_coords = [2.3; 1; 1.0; 0];
+        if cfg.kinodynamic
+            cfg.start_coords = [-2.2; -1; 0; 0];  % [q1; q2; v1; v2]
+            cfg.end_coords = [2.3; 1; 0; 0];
+        else
+            cfg.start_coords = [-2.2; -1];  % [q1; q2]
+            cfg.end_coords = [2.3; 1];
+        end
     elseif cfg.dim == 7
 %         cfg.start_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
 %         cfg.end_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
@@ -102,14 +106,14 @@ while collided1 || collided2
     collided2 = checkPath_single(cfg.end_coords(1:cfg.dim), obs, cfg.y_f, cfg.circle_obs, cfg.dim);
 end
 
-for RRT_star = 1
+for RRT_star = 0
     cfg.RRT_star = RRT_star;
     for NN_check = 1
         cfg.NN_check = NN_check;
         fprintf('RRT_star = %d \nNN_check = %d \n\n', cfg.RRT_star,cfg.NN_check);
         
         if cfg.NN_check
-            cfg.grad_heuristic = 1;
+            cfg.grad_heuristic = 0;
         else
             cfg.grad_heuristic = 0;
         end
