@@ -14,8 +14,8 @@ cfg.circle_obs = true;  % when equals to true, assuming the obstacle as a
                       % sphere;  when equals to false, dividing it to many points.
 cfg.display1 = false;
 cfg.display2 = true;
-cfg.display3 = true;   % whether to plot figure 1, 2, 3 during planning.
-cfg.display4 = true;    % whether to plot figure after planning.
+cfg.display3 = false;   % whether to plot figure 1, 2, 3 during planning.
+cfg.display4 = false;    % whether to plot figure after planning.
 cfg.maxSample = 2000;  % the maximum number of random samples.
 
 cfg.stepsize = 0.1 * pi;    % 0.095 * pi;
@@ -88,8 +88,8 @@ while collided1 || collided2
         %         cfg.start_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
         %         cfg.end_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
         if cfg.kinodynamic
-            cfg.start_coords = [-2.2; -1; 0; 0];  % [q1; q2; v1; v2]
-            cfg.end_coords = [2.3; 1; 0; 0];
+            cfg.start_coords = [-2.2; -2; 0; 0];  % [q1; q2; v1; v2]
+            cfg.end_coords = [2.3; 1; 1; -1];
         else
             cfg.start_coords = [-2.2; -1];  % [q1; q2]
             cfg.end_coords = [2.3; 1];

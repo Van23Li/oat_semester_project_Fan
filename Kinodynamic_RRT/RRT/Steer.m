@@ -1,5 +1,5 @@
-function [newPoint, a_1, v_limit, a_2, t_1, t_v, t_2] = Steer(closestNode, sample, T, cfg)
-newPoint = sample;
+function result = Steer(closestNode, sample, T, cfg)
+% newPoint = sample;
 v_1 = closestNode(cfg.dim+1 : 2*cfg.dim);
 v_2 = sample(cfg.dim+1 : 2*cfg.dim);
 p_1 = closestNode(1 : cfg.dim);
@@ -32,7 +32,11 @@ if sum(velocity_valided) < length(velocity_valided)
     t_v = velocity_valided .* t_v + ~velocity_valided .* ((v_1.^2 + v_2.^2 - 2*v_limit.^2)./(2*v_limit .* a_1) + (p_2 - p_1)./v_limit);
     t_2 = velocity_valided .* t_2 + ~velocity_valided .* (v_2 - v_limit) ./ a_2;
 end
-    if sum(t_1) < 0 || sum(t_2) < 0
-        a=2
-    end
+
+result.a_1 = a_1;
+result.v_limit = v_limit;
+result.a_2 = a_2;
+result.t_1 = t_1;
+result.t_v = t_v;
+result.t_2 = t_2;
 end

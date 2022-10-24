@@ -6,7 +6,5 @@ distance = Dist_kd(sample, RRTree, cfg);
 closestNode = RRTree(1:2*cfg.dim, I);
 closestNode_int = RRTree(end, I);
 T = distance(:,I);
-    if sum(T) < 0
-        a=2
-    end
+
 end

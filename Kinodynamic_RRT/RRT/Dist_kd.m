@@ -1,4 +1,8 @@
 function out = Dist_kd (x1, x2, cfg)
+if sum(x1 == x2(1:2*cfg.dim,1)) == length(x1)
+    out = 0;
+    return
+end
 v_1 = x2(cfg.dim+1 : 2*cfg.dim,:);
 v_2 = x1(cfg.dim+1 : 2*cfg.dim);
 p_1 = x2(1 : cfg.dim,:);

@@ -64,6 +64,7 @@ if cfg.saveRand
     rand_state = [];
     rng(1,'twister');
 end
+
 Joint = [];
 while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     %% obtain P_new
@@ -72,7 +73,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
             load('RRT/rand_state.mat')
         end
         if ~ exist('RRT/rand_state.mat','file')
-            if rand <= 0.5   % Sampling randomly or moving towards the target
+            if rand <= 0.9   % Sampling randomly or moving towards the target
                 rand_state = [rand_state; rng];
                 sample = RandomSample();    %[q1;q2]
                 rand_state = [rand_state; rng];
@@ -84,7 +85,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
                 counter_rand = counter_rand + 1;
             end
         else
-            if rand <= 0.5   % Sampling randomly or moving towards the target
+            if rand <= 0.9   % Sampling randomly or moving towards the target
                 rng(rand_state(2*counter_rand + 1));
                 sample = RandomSample();    %[q1;q2]
                 rng(rand_state(2*counter_rand + 2));
@@ -96,7 +97,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
             end
         end
     else
-        if rand <= 1   % Sampling randomly or moving towards the target
+        if rand <= 0.9   % Sampling randomly or moving towards the target
             sample = RandomSample();    %[q1;q2]
             counter_rand = counter_rand + 1;
         else
@@ -106,26 +107,15 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     end
     %% Find the closest node.
     % Calculate the distance from sample to each nodes in RRT tree.
-    if cfg.kinodynamic
-        [closestNode, closestNode_int, M, I, T] = nearest_kd(@Dist_kd, sample, RRTree, cfg);
-    else
-        [closestNode, closestNode_int, M, I] = nearest(@Dist, sample, RRTree, cfg);
-    end
+    [closestNode, closestNode_int, M, I, T] = nearest_kd(@Dist_kd, sample, RRTree, cfg);
     
     %% Calculate the new node
-    if cfg.kinodynamic
-        [newPoint, a_1, v_limit, a_2, t_1, t_v, t_2] = Steer(closestNode, sample, T, cfg);
-    else
-        if M > cfg.stepsize
-            newPoint = closestNode + (sample-closestNode)/norm(sample-closestNode, 2) * cfg.stepsize;
-        else
-            newPoint = sample;  % [q1; q2]
-        end
-    end
+    newPoint = Steer(closestNode, sample, T, cfg);
+    % newPoint include [a_1, v_limit, a_2, t_1, t_v, t_2]
     
     %% collision checking
     % Chech wheter the path from closest node to new node is available
-    [collided, collidedPose, ObsPoint] = checkPath(closestNode(1:cfg.dim), newPoint(1:cfg.dim), obs, cfg.dim, cfg.NN_check, cfg.y_f, cfg.circle_obs);
+    [collided, collidedPose, ObsPoint] = checkPath_kd(closestNode, newPoint, obs, cfg.dim, cfg.NN_check, cfg.y_f, cfg.circle_obs, cfg);
     
     %% if cfg.grad_heuristic = Ture, obtain a new p_new based on grad heuristic when collisied,
     % otherwise, discard it directly %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -163,85 +153,40 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     
     %% Add p_new to RRT Tree
     %% Check whether the new node is near the target
-    if cfg.kinodynamic
-        if Dist_kd(newPoint,cfg.end_coords,cfg) < cfg.disTh
-            pathFound = true;
-            break;
-        end
-    else
-        if Dist(newPoint(1:cfg.dim),cfg.end_coords(1:cfg.dim)) < cfg.disTh
-            pathFound = true;
-            break;
-        end
+    if Dist_kd(sample,cfg.end_coords,cfg) < cfg.disTh
+        pathFound = true;
+        break;
     end
     
     %% Check whether the new node is in the RRT tree
-    if cfg.kinodynamic
-        [~, I2] = min(Dist_kd(newPoint, RRTree, cfg), [], 2);
-        if Dist_kd(newPoint, RRTree(:, I2), cfg) < cfg.disTh
-            failedAttempts = failedAttempts+1;
-            continue;
-        end
-    else
-        [~, I2] = min(Dist(newPoint, RRTree(1:cfg.dim, :)), [], 2);
-        if Dist(newPoint, RRTree(1:cfg.dim, I2)) < cfg.disTh
-            failedAttempts = failedAttempts+1;
-            continue;
-        end
-    end
+    %     if cfg.kinodynamic
+    %         [~, I2] = min(Dist_kd(sample, RRTree, cfg), [], 2);
+    %         if Dist_kd(sample, RRTree(:, I2), cfg) < cfg.disTh
+    %             failedAttempts = failedAttempts+1;
+    %             continue;
+    %         end
+    %     else
+    %         [~, I2] = min(Dist(newPoint, RRTree(1:cfg.dim, :)), [], 2);
+    %         if Dist(newPoint, RRTree(1:cfg.dim, I2)) < cfg.disTh
+    %             failedAttempts = failedAttempts+1;
+    %             continue;
+    %         end
+    %     end
     
     %% RRT* or RRT
     if cfg.RRT_star
         [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg, handle);
     else
-        if cfg.kinodynamic
-%             RRTree = IntermediateStates(RRTree, closestNode, newPoint, I);
-            RRTree = [RRTree, [newPoint; RRTree(end-1,I) + T ;I]];
-            failedAttempts = 0;
-            
-            % Visualize the expanding process of RRT
-            % plot in configuration space
-            if cfg.display2 && cfg.dim == 2
-                line(handle.ax_h2,[closestNode(2);newPoint(2)],[closestNode(1);newPoint(1)],'color',[0 0 1]);
-                drawnow
-                figure(handle.fig_handle2)
-                hold on
-                quiver(handle.ax_h2,newPoint(2),newPoint(1),0.1*newPoint(4),0.1*newPoint(3),'color',[0 1 0]);
-                hold off
-            end
-            % plot in task space
-            if cfg.display3
-                tmp_new = calc_fk(newPoint(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
-                tmp_close = calc_fk(closestNode(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
-                line(handle.ax_h3,[tmp_close(end,1);tmp_new(end,1)],[tmp_close(end,2);tmp_new(end,2)],'color',[0 0 1]);
-                drawnow
-            end
-        else
-            % Add the new node to the RRT tree
-            RRTree = [RRTree, [newPoint; RRTree(cfg.dim+1,I) + cfg.stepsize ;I]];
-            failedAttempts = 0;
-
-            % Visualize the expanding process of RRT
-            % plot in configuration space
-            if cfg.display2 && cfg.dim == 2
-                line(handle.ax_h2,[closestNode(2);newPoint(2)],[closestNode(1);newPoint(1)],'color',[0 0 1]);
-                drawnow
-            end
-            % plot in task space
-            if cfg.display3
-                tmp_new = calc_fk(newPoint,cfg.r,cfg.d,cfg.alpha,cfg.base);
-                tmp_close = calc_fk(closestNode,cfg.r,cfg.d,cfg.alpha,cfg.base);
-                line(handle.ax_h3,[tmp_close(end,1);tmp_new(end,1)],[tmp_close(end,2);tmp_new(end,2)],'color',[0 0 1]);
-                drawnow
-            end
-        end
+        RRTree = IntermediateStates(RRTree, closestNode, sample, newPoint, I, T, obs, cfg, handle);
+        failedAttempts = 0;
     end
 end
 
 % Add the path from final node to target
 if cfg.display2 && cfg.dim == 2 && pathFound
-    line(handle.ax_h2,[closestNode(2);cfg.end_coords(2)],[closestNode(1);cfg.end_coords(1)]);
+    plot_curve_kd(closestNode, cfg.end_coords, cfg, handle);
 end
+
 if cfg.display3 == 1
     tmp_new = calc_fk(closestNode(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base); % change [q2 q1] to [q1 q2]
     tmp_close = calc_fk(cfg.end_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
@@ -269,7 +214,8 @@ if pathFound
         path = [RRTree(1:end - 2, prev), path];
         if ~ismember(prev, [])
             if cfg.display2 == 1 && cfg.dim == 2
-                line(handle.ax_h2,path(2,1:2),path(1,1:2),'color',[1 0 0],'linewidth',2);
+%                 line(handle.ax_h2,path(2,1:2),path(1,1:2),'color',[1 0 0],'linewidth',2);
+                plot_curve_kd(path(1:2*cfg.dim,1), path(1:2*cfg.dim,2), cfg, handle, [1 0 0], 2);
             end
             if cfg.display3 == 1
                 tmp_new = calc_fk(path(1:cfg.dim,1),cfg.r,cfg.d,cfg.alpha,cfg.base); % change [q2 q1] to [q1 q2]
@@ -304,7 +250,16 @@ if pathFound
         q_end = path(1,1);
         v_end = path(3,1);
         for i = 1 : size(path,2)-1
-            [a_1, v_max, a_2, t_1, t_v, t_2] = CalTrajectory(path(:,i), path(:,i+1), cfg);
+            
+            T = Dist_kd(path(:,i), path(:,i+1), cfg);
+            Point = Steer(path(:,i), path(:,i+1), T, cfg); 
+            a_1 = Point.a_1;
+            v_limit = Point.v_limit;
+            a_2 = Point.a_2;
+            t_1 = Point.t_1;
+            t_v = Point.t_v;
+            t_2 = Point.t_2;
+    
             x = linspace(t_end, t_end + t_1(1), 10);
             y = q_end + v_end.* (x - t_end) + 1/2 .* a_1(1) * (x - t_end).^2;
             q1_list = [q1_list, y];
@@ -312,15 +267,15 @@ if pathFound
             v_end = path(3,i) + a_1(1).* (x(end) - t_end);
             t_end = t_end + t_1(1);
             plot(ax_h5,x,y,'color',[1 0 0]);
-%             if t_v(1)
-                x = linspace(t_end, t_end + t_v(1), 10);
-                y = q_end + v_end.* (x - t_end);
-                q1_list = [q1_list, y];
-                plot(ax_h5,x,y,'color',[0 1 0]);
-                q_end = y(end);
-                v_end = v_end;
-                t_end = t_end + t_v(1);
-%             end
+            %             if t_v(1)
+            x = linspace(t_end, t_end + t_v(1), 10);
+            y = q_end + v_end.* (x - t_end);
+            q1_list = [q1_list, y];
+            plot(ax_h5,x,y,'color',[0 1 0]);
+            q_end = y(end);
+            v_end = v_end;
+            t_end = t_end + t_v(1);
+            %             end
             x = linspace(t_end, t_end + t_2(1), 10);
             y = q_end + v_end.* (x - t_end) + 1/2 .* a_2(1) * (x - t_end).^2;
             q1_list = [q1_list, y];
@@ -336,7 +291,15 @@ if pathFound
         q_end = path(2,1);
         v_end = path(4,1);
         for i = 1 : size(path,2)-1
-            [a_1, v_max, a_2, t_1, t_v, t_2] = CalTrajectory(path(:,i), path(:,i+1), cfg);
+            T = Dist_kd(path(:,i), path(:,i+1), cfg);
+            Point = Steer(path(:,i), path(:,i+1), T, cfg); 
+            a_1 = Point.a_1;
+            v_limit = Point.v_limit;
+            a_2 = Point.a_2;
+            t_1 = Point.t_1;
+            t_v = Point.t_v;
+            t_2 = Point.t_2;
+            
             x = linspace(t_end, t_end + t_1(2), 10);
             y = q_end + v_end.* (x - t_end) + 1/2 .* a_1(2) * (x - t_end).^2;
             q2_list = [q2_list, y];
@@ -344,15 +307,15 @@ if pathFound
             v_end = path(4,i) + a_1(2).* (x(end) - t_end);
             t_end = t_end + t_1(2);
             plot(ax_h6,x,y,'color',[1 0 0]);
-%             if t_v(2)
-                x = linspace(t_end, t_end + t_v(2), 10);
-                y = q_end + v_end.* (x - t_end);
-                q2_list = [q2_list, y];
-                plot(ax_h6,x,y,'color',[0 1 0]);
-                q_end = y(end);
-                v_end = v_end;
-                t_end = t_end + t_v(2);
-%             end
+            %             if t_v(2)
+            x = linspace(t_end, t_end + t_v(2), 10);
+            y = q_end + v_end.* (x - t_end);
+            q2_list = [q2_list, y];
+            plot(ax_h6,x,y,'color',[0 1 0]);
+            q_end = y(end);
+            v_end = v_end;
+            t_end = t_end + t_v(2);
+            %             end
             x = linspace(t_end, t_end + t_2(2), 10);
             y = q_end + v_end.* (x - t_end) + 1/2 .* a_2(2) * (x - t_end).^2;
             q2_list = [q2_list, y];
