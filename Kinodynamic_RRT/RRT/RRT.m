@@ -168,7 +168,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     
     %% RRT* or RRT
     if cfg.RRT_star
-        [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg, handle);
+        [RRTree, failedAttempts] = run_RRT_star(RRTree, closestNode, sample, newPoint, I, T, obs, cfg, handle);
     else
         RRTree = IntermediateStates(RRTree, closestNode, sample, newPoint, I, T, obs, cfg, handle);
         failedAttempts = 0;
@@ -248,7 +248,7 @@ if pathFound
     % Calculate the length of planned path
     pathLength = 0;
     for i = 1:size(path,2)-1
-        pathLength = pathLength + Dist(path(1:cfg.dim, i),path(1:cfg.dim, i+1));
+        pathLength = pathLength + Dist_kd(path(:, i+1),path(:, i),cfg);
         
     end
     
@@ -402,10 +402,10 @@ newPoint_RRTstar = closestNode + cfg.stepsize * (d_vector - projection)/norm(d_v
 end
 
 %%
-function [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg, handle)
-
+function [RRTree, failedAttempts] = run_RRT_star(RRTree, closestNode, sample, newPoint, I, T, obs, cfg, handle)
 %         search nodes in a circle of radius 'cfg.RadiusForNeib'
 [Idx,D] = rangesearch(RRTree(1:cfg.dim,:)',newPoint',cfg.RadiusForNeib);
+[Idx,D] = rangesearch_kd(RRTree(1:cfg.dim,:)',newPoint',cfg.RadiusForNeib);
 nearIndexList = Idx{1};
 disToNewList = D{1};
 
