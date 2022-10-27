@@ -70,7 +70,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
             load('RRT/rand_state.mat')
         end
         if ~ exist('RRT/rand_state.mat','file')
-            if rand <= 0.5   % Sampling randomly or moving towards the target
+            if rand <= 0.9   % Sampling randomly or moving towards the target
                 rand_state = [rand_state; rng];
                 sample = RandomSample();    %[q1;q2]
                 rand_state = [rand_state; rng];
@@ -82,7 +82,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
                 counter_rand = counter_rand + 1;
             end
         else
-            if rand <= 0.5   % Sampling randomly or moving towards the target
+            if rand <= 0.9   % Sampling randomly or moving towards the target
                 rng(rand_state(2*counter_rand + 1));
                 sample = RandomSample();    %[q1;q2]
                 rng(rand_state(2*counter_rand + 2));
@@ -94,7 +94,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
             end
         end
     else
-        if rand <= 0.5   % Sampling randomly or moving towards the target
+        if rand <= 0.9   % Sampling randomly or moving towards the target
             sample = RandomSample();    %[q1;q2]
             counter_rand = counter_rand + 1;
         else
@@ -164,7 +164,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     
     %% RRT* or RRT
     if cfg.RRT_star
-        [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg);
+        [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg, handle);
     else
         % Add the new node to the RRT tree
         RRTree = [RRTree, [newPoint; RRTree(cfg.dim+1,I) + cfg.stepsize ;I]];
@@ -447,7 +447,7 @@ newPoint_RRTstar = closestNode + cfg.stepsize * (d_vector - projection)/norm(d_v
 end
 
 %%
-function [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg)
+function [RRTree, failedAttempts] = run_RRT_star(RRTree, newPoint, I, closestNode, obs, cfg, handle)
 
 %         search nodes in a circle of radius 'cfg.RadiusForNeib'
 [Idx,D] = rangesearch(RRTree(1:cfg.dim,:)',newPoint',cfg.RadiusForNeib);
