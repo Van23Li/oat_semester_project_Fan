@@ -33,9 +33,7 @@ if NN_check
             dir = q_list(:, end);
             inp = pos_enc([repmat(dir', [size(obs.centers,1),1]), obs.centers])';
             val = y_f(inp);
-            if dir(2) < -2.5
-                a=3
-            end
+            
             if sum(val<=obs.radiuses'+0.5) || sum(dir <= cfg.q_max(1:cfg.dim)') ~= length(dir) || ...
                                 sum(dir >= cfg.q_min(1:cfg.dim)') ~= length(dir)
                 collided = true;

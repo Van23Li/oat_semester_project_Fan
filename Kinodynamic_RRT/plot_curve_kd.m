@@ -30,11 +30,38 @@ for t = linspace(0, finalPoint.t_1(1) + finalPoint.t_v(1) + finalPoint.t_2(1),10
         q_list_vis(j,i) = q_1;
     end
 end
+
 if cfg.display2 && cfg.dim == 2
     figure(handle.fig_handle2)
     hold on
     plot(handle.ax_h2, q_list_vis(2,:), q_list_vis(1,:),'LineStyle','-','Color',color,'LineWidth',linewidth);
     %         plot(handle.ax_h2, q_list_vis(2,end), q_list_vis(1,end),'bo');
     hold off
+end
+
+
+if cfg.display3
+    tmp_list = [];
+    for i = 1:size(q_list_vis,2)
+        tmp = calc_fk(q_list_vis(1:cfg.dim,i),cfg.r,cfg.d,cfg.alpha,cfg.base); % change [q2 q1] to [q1 q2]
+        tmp_list = [tmp_list, tmp(end,1:2)'];
+    end
+    figure(handle.fig_handle3)
+    hold on
+    plot(handle.ax_h3, tmp_list(1,:), tmp_list(2,:),'LineStyle','-','Color',color,'LineWidth',linewidth);
+    hold off
+end
+end
+
+%%
+function pts = calc_fk(j_state,r,d,alpha,base)
+P = dh_fk(j_state,r,d,alpha,base);
+pts = zeros(3,3);
+for i = 1:1:length(j_state) + 1
+    v = [0,0,0];
+    R = P{i}(1:3,1:3);
+    T = P{i}(1:3,4);
+    p = v*R'+T';
+    pts(i,:) = p;
 end
 end

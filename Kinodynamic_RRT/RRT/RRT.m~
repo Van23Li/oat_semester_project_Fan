@@ -243,6 +243,20 @@ if pathFound
         end
     end  
     
+    % anime
+    if cfg.display3 == 1
+        for i = 1:size(path,2)
+            % moving the robot
+            if ~isempty(handle.anime)
+                set(handle.anime,'visible','off');
+            end
+            hold on
+            handle.anime = create_r(handle.ax_h3,path(1:cfg.dim,i), cfg.r, cfg.d, cfg.alpha, cfg.base);
+            pause(0.2);
+            hold off
+        end
+    end
+    
     Time = Time + toc();
     
     % Calculate the length of planned path
