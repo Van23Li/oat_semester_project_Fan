@@ -76,4 +76,5 @@ Controlling parameters
 (in mai.m)
 
 - cfg.display5: whether to plot DOF's s-t curve.
-Others are as same as RRT_7D
+
+Others are the same as RRT_7D
