@@ -245,11 +245,30 @@ if pathFound
     
     Time = Time + toc();
     
+    
+    % moving the robot
+    if cfg.anime
+        q_list = [];
+        for i = 1:size(path,2)-1
+            q_stage = plot_anime(path(:,i), path(:,i+1), cfg);
+            q_list = [q_list, q_stage];
+        end
+        for i = 1:size(q_list,2)
+            if ~isempty(handle.anime)
+                set(handle.anime,'visible','off');
+            end
+            figure(handle.fig_handle3);
+            hold on
+            handle.anime = create_r(handle.ax_h3,q_list(:,i), cfg.r, cfg.d, cfg.alpha, cfg.base);
+            pause(0.1);
+            hold off
+        end
+    end
+    
     % Calculate the length of planned path
     pathLength = 0;
     for i = 1:size(path,2)-1
         pathLength = pathLength + Dist_kd(path(:, i+1),path(:, i),cfg);
-        
     end
     
     fprintf('Runing time = %d \nNumber of iteration = %d \nNumber of expended nodes = %d \nPath Length = %d \n\n', Time, counter_rand,size(RRTree,2),pathLength);   % 打印运行时间toc和路径长度
@@ -292,8 +311,10 @@ end
 
 function handle = create_r(ax_h,j_state,r,d,alpha,base)
 pts = calc_fk(j_state,r,d,alpha,base);
+hold on
 handle = plot(ax_h,pts(:,1),pts(:,2),'LineWidth',2,...
-    'Marker','o','MarkerFaceColor','k','MarkerSize',4);
+    'Marker','o','MarkerFaceColor','k','MarkerSize',4, 'Color',[0, 0, 1]);
+hold off
 end
 
 function move_r(r_handle,j_state,r,d,alpha,base)

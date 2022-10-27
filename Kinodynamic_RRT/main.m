@@ -17,6 +17,7 @@ cfg.display2 = true;
 cfg.display3 = true;   % whether to plot figure 1, 2, 3 during planning.
 cfg.display4 = false;    % whether to plot figure after planning.
 cfg.display5 = true;    % whether to plot q-q_dot.
+cfg.anime = true;    % whether to plot the anime.
 cfg.maxSample = 2000;  % the maximum number of random samples.
 
 cfg.stepsize = 0.1 * pi;    % 0.095 * pi;

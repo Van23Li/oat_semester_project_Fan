@@ -76,5 +76,6 @@ Controlling parameters
 (in mai.m)
 
 - cfg.display5: whether to plot DOF's s-t curve.
+- cfg.anime: whether to display the animation of robot movement.
 
 Others are the same as RRT_7D
