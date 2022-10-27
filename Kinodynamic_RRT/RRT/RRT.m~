@@ -248,8 +248,7 @@ if pathFound
     % Calculate the length of planned path
     pathLength = 0;
     for i = 1:size(path,2)-1
-        pathLength = pathLength + Dist_kd(path(1:cfg.dim, i),path(1:cfg.dim, i+1));
-        pathLength = pathLength + Dist_kd(sample,cfg.end_coords,cfg);
+        pathLength = pathLength + Dist_kd(path(:, i+1),path(:, i),cfg);
         
     end
     

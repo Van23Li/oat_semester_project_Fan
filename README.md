@@ -63,3 +63,17 @@ If cfg.display1, cfg.display2, cfg.display3 = 0, three figures will be created:
 - Figure 1 represents the result of NN when colliding.
 - Figure 2 represents the search progress in configuration space, where red point '*' denotes collied point, arrow visualizes calculated grad, red point 'o' represents generated new point using grad heuristic (if grad_heuristic == 1), and green lines denote rewriten edges (if RRT_star == 1).
 - Figure 3 represents the search progress in task space, where red point '*' denotes collied point.
+
+## Kinodynamic_RRT
+
+~~~
+run main.m
+~~~
+
+Note: you can set starting and end pose by **cfg.start_coords** and **cfg.end_coords**.
+
+Controlling parameters
+(in mai.m)
+
+- cfg.display5: whether to plot DOF's s-t curve.
+Others are as same as RRT_7D

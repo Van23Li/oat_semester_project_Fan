@@ -238,51 +238,51 @@ if cfg.display3
 end
 
 %%
-if cfg.kinodynamic
-    %% Figure with robot and obstacles
-    fig_handle4 = figure('Name','Two-dimensional robot','Position',[600 10 400 400]);
-    ax_h4 = axes(fig_handle4,'View',[0 90]);
-    axis equal
-    hold on
-    ax_h4.XLim = [cfg.q_min(end - 1) cfg.q_max(end - 1)];
-    ax_h4.YLim = [cfg.q_min(end) cfg.q_max(end)];
-    ax_h4.ZLim = [-0.1 0.1];
-    
-    % Plot obstractles
-    if cfg.circle_obs
-        for i = 1 : size(obs.centers,1)
-            t = 0 : 0.1 : 2 * pi;
-            x = obs.radiuses(i) * cos(t) + obs.centers(i,1);
-            y = obs.radiuses(i) * sin(t) + obs.centers(i,2);
-            
-            patch(x, y,'k','facealpha', 0.4,'edgecolor','none');
-        end
-    else
-        patch(obs,'FaceAlpha',0.4,'EdgeColor','none','LineStyle','none');
-    end
-    
-    % Plot robot
-    create_r(ax_h4,cfg.start_coords(1:cfg.dim), cfg.r, cfg.d, cfg.alpha, cfg.base);
-    hold off
-    
-    %% Visualize the starting and end nodes
-    hold on
-    start_pose = calc_fk(cfg.start_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
-    end_pose = calc_fk(cfg.end_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
-    plot(ax_h4, start_pose(end,1), start_pose(end,2),'gp');  % start_coords: [q2;q1]
-    plot(ax_h4, end_pose(end,1), end_pose(end,2),'rp');
-    
-    pts = calc_fk(cfg.end_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
-    plot(ax_h4, pts(:,1),pts(:,2),'LineWidth',2,...
-        'Marker','o','MarkerFaceColor','k','MarkerSize',4, 'Color', [1,0,0]);
-    
-    
-    hold off
-    
-    %output
-    handle.fig_handle4 = fig_handle4;
-    handle.ax_h4 = ax_h4;
-end
+% if cfg.kinodynamic
+%     %% Figure with robot and obstacles
+%     fig_handle4 = figure('Name','Two-dimensional robot','Position',[600 10 400 400]);
+%     ax_h4 = axes(fig_handle4,'View',[0 90]);
+%     axis equal
+%     hold on
+%     ax_h4.XLim = [cfg.q_min(end - 1) cfg.q_max(end - 1)];
+%     ax_h4.YLim = [cfg.q_min(end) cfg.q_max(end)];
+%     ax_h4.ZLim = [-0.1 0.1];
+%     
+%     % Plot obstractles
+%     if cfg.circle_obs
+%         for i = 1 : size(obs.centers,1)
+%             t = 0 : 0.1 : 2 * pi;
+%             x = obs.radiuses(i) * cos(t) + obs.centers(i,1);
+%             y = obs.radiuses(i) * sin(t) + obs.centers(i,2);
+%             
+%             patch(x, y,'k','facealpha', 0.4,'edgecolor','none');
+%         end
+%     else
+%         patch(obs,'FaceAlpha',0.4,'EdgeColor','none','LineStyle','none');
+%     end
+%     
+%     % Plot robot
+%     create_r(ax_h4,cfg.start_coords(1:cfg.dim), cfg.r, cfg.d, cfg.alpha, cfg.base);
+%     hold off
+%     
+%     %% Visualize the starting and end nodes
+%     hold on
+%     start_pose = calc_fk(cfg.start_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
+%     end_pose = calc_fk(cfg.end_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
+%     plot(ax_h4, start_pose(end,1), start_pose(end,2),'gp');  % start_coords: [q2;q1]
+%     plot(ax_h4, end_pose(end,1), end_pose(end,2),'rp');
+%     
+%     pts = calc_fk(cfg.end_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
+%     plot(ax_h4, pts(:,1),pts(:,2),'LineWidth',2,...
+%         'Marker','o','MarkerFaceColor','k','MarkerSize',4, 'Color', [1,0,0]);
+%     
+%     
+%     hold off
+%     
+%     %output
+%     handle.fig_handle4 = fig_handle4;
+%     handle.ax_h4 = ax_h4;
+% end
 %% Some functions
     function handle = create_r(ax_h,j_state,r,d,alpha,base)
         pts = calc_fk(j_state,r,d,alpha,base);
