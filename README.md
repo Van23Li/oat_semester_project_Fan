@@ -64,7 +64,7 @@ If cfg.display1, cfg.display2, cfg.display3 = 0, three figures will be created:
 - Figure 2 represents the search progress in configuration space, where red point '*' denotes collied point, arrow visualizes calculated grad, red point 'o' represents generated new point using grad heuristic (if grad_heuristic == 1), and green lines denote rewriten edges (if RRT_star == 1).
 - Figure 3 represents the search progress in task space, where red point '*' denotes collied point.
 
-## Kinodynamic_RRT
+## Kinodynamic_RRT_7D (Can plan in any dimension case)
 
 ~~~
 run main.m

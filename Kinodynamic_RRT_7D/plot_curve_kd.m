@@ -7,8 +7,8 @@ end
 Time = Dist_kd(node2, node1, cfg);
 finalPoint = Steer(node1, node2, Time, cfg);
 
-q_1_end = node1(1:2) + node1(3:4) .* finalPoint.t_1 + 1/2 .* finalPoint.a_1 .* finalPoint.t_1.^2;
-v_1_end = node1(3:4) + finalPoint.a_1 .* finalPoint.t_1;
+q_1_end = node1(1:cfg.dim) + node1(cfg.dim + 1:2 * cfg.dim) .* finalPoint.t_1 + 1/2 .* finalPoint.a_1 .* finalPoint.t_1.^2;
+v_1_end = node1(cfg.dim + 1:2 * cfg.dim) + finalPoint.a_1 .* finalPoint.t_1;
 q_v_end = q_1_end + v_1_end .* finalPoint.t_v;
 v_v_end = v_1_end;
 q_2_end = q_v_end + v_v_end .* finalPoint.t_2 + 1/2 * finalPoint.a_2 .* finalPoint.t_2.^2;
@@ -18,7 +18,7 @@ q_list_vis = [];
 i = 0;
 for t = linspace(0, finalPoint.t_1(1) + finalPoint.t_v(1) + finalPoint.t_2(1),100)
     i = i + 1;
-    for j = 1:2
+    for j = 1:cfg.dim
         if t < finalPoint.t_1(j)
             q_1 = node1(j) + node1(j+2) * t + 1/2 * finalPoint.a_1(j) * t^2;
         elseif t < finalPoint.t_1(j) + finalPoint.t_v(j)

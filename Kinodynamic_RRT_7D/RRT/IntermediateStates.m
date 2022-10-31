@@ -1,7 +1,7 @@
 function RRTree = IntermediateStates(RRTree, closestNode, sample, newPos, I, T, obs, cfg, handle)
 % I: closestNode's int
-q_1_end = closestNode(1:2) + closestNode(3:4) .* newPos.t_1 + 1/2 .* newPos.a_1 .* newPos.t_1.^2;
-v_1_end = closestNode(3:4) + newPos.a_1 .* newPos.t_1;
+q_1_end = closestNode(1:cfg.dim) + closestNode(cfg.dim + 1:2 * cfg.dim) .* newPos.t_1 + 1/2 .* newPos.a_1 .* newPos.t_1.^2;
+v_1_end = closestNode(cfg.dim + 1:2 * cfg.dim) + newPos.a_1 .* newPos.t_1;
 q_v_end = q_1_end + v_1_end .* newPos.t_v;
 v_v_end = v_1_end;
 q_2_end = q_v_end + v_v_end .* newPos.t_2 + 1/2 * newPos.a_2 .* newPos.t_2.^2;
@@ -11,7 +11,7 @@ q_list = [];
 i = 0;
 for t = 0.2 : 0.2 : newPos.t_1(1) + newPos.t_v(1) + newPos.t_2(1)
     i = i + 1;
-    for j = 1:2
+    for j = 1:cfg.dim
         if t < newPos.t_1(j)
             q_1 = closestNode(j) + closestNode(j+2) * t + 1/2 * newPos.a_1(j) * t^2;
             v_1 = closestNode(j+2) + newPos.a_1(j) * t;
@@ -36,7 +36,7 @@ if (cfg.display2 && cfg.dim == 2) || cfg.display3
     i = 0;
     for t = linspace(0, newPos.t_1(1) + newPos.t_v(1) + newPos.t_2(1),100)
         i = i + 1;
-        for j = 1:2
+        for j = 1:cfg.dim
             if t < newPos.t_1(j)
                 q_1 = closestNode(j) + closestNode(j+2) * t + 1/2 * newPos.a_1(j) * t^2;
                 %                 v_1 = closestNode(j+2) + newPos.a_1(j) * t;

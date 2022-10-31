@@ -97,7 +97,7 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
             end
         end
     else
-        if rand <= 0.9   % Sampling randomly or moving towards the target
+        if rand <= 0.8   % Sampling randomly or moving towards the target
             sample = RandomSample();    %[q1;q2]
             counter_rand = counter_rand + 1;
         else
@@ -160,11 +160,11 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     end
     
     %% Check whether the new node is in the RRT tree
-%     [~, I2] = min(Dist_kd(sample, RRTree, cfg), [], 2);
-%     if Dist_kd(sample, RRTree(:, I2), cfg) < cfg.disTh
-%         failedAttempts = failedAttempts+1;
-%         continue;
-%     end
+    %     [~, I2] = min(Dist_kd(sample, RRTree, cfg), [], 2);
+    %     if Dist_kd(sample, RRTree(:, I2), cfg) < cfg.disTh
+    %         failedAttempts = failedAttempts+1;
+    %         continue;
+    %     end
     
     %% RRT* or RRT
     if cfg.RRT_star
@@ -216,38 +216,115 @@ if pathFound
     end
     
     if cfg.display5
-        MaxTime = RRTree(end-1, I);
-        
-        % create figure q_1
-        fig_handle5 = figure('Name','q_1','Position',[200 500 400 400]);
-        ax_h5 = axes(fig_handle5,'View',[0 90]);
-        axis equal
-        hold on
-        ax_h5.XLim = [0 1.3*MaxTime];
-        ax_h5.YLim = [cfg.q_min(1) cfg.q_max(1)];
-        
-        % create figure q_2
-        fig_handle6 = figure('Name','q_2','Position',[200 10 400 400]);
-        ax_h6 = axes(fig_handle6,'View',[0 90]);
-        axis equal
-        hold on
-        ax_h6.XLim = [0 1.3*MaxTime];
-        ax_h6.YLim = [cfg.q_min(1) cfg.q_max(1)];
-        
-        % plot DOF-DOF-dot
-        t_end1 = 0;
-        t_end2 = 0;
-        for i = 1 : size(path,2)-1
-            t_end1 = plot_qdot(path(:,i), path(:,i+1), cfg, 1, t_end1, ax_h5);
-            t_end2 = plot_qdot(path(:,i), path(:,i+1), cfg, 2, t_end2, ax_h6);
+        if cfg.dim == 2
+%             MaxTime = RRTree(end-1, I);
+            
+            % create figure q_1
+            fig_handle5 = figure('Name','q_1','Position',[200 500 400 400]);
+            ax_h5 = axes(fig_handle5,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h5.XLim = [0 1.3*MaxTime];
+            ax_h5.YLim = [cfg.q_min(1) cfg.q_max(1)];
+            
+            % create figure q_2
+            fig_handle6 = figure('Name','q_2','Position',[200 10 400 400]);
+            ax_h6 = axes(fig_handle6,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h6.XLim = [0 1.3*MaxTime];
+            ax_h6.YLim = [cfg.q_min(1) cfg.q_max(1)];
+            
+            % plot DOF-DOF-dot
+            t_end1 = 0;
+            t_end2 = 0;
+            for i = 1 : size(path,2)-1
+                t_end1 = plot_qdot(path(:,i), path(:,i+1), cfg, 1, t_end1, ax_h5);
+                t_end2 = plot_qdot(path(:,i), path(:,i+1), cfg, 2, t_end2, ax_h6);
+            end
+        else
+%             MaxTime = RRTree(end-1, I);
+            
+            % create figure q_1
+            fig_handle5 = figure('Name','q_1','Position',[200 500 400 400]);
+            ax_h5 = axes(fig_handle5,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h5.XLim = [0 1.3*MaxTime];
+            ax_h5.YLim = [cfg.q_min(1) cfg.q_max(1)];
+            
+            % create figure q_2
+            fig_handle6 = figure('Name','q_2','Position',[200 10 400 400]);
+            ax_h6 = axes(fig_handle6,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h6.XLim = [0 1.3*MaxTime];
+            ax_h6.YLim = [cfg.q_min(2) cfg.q_max(2)];
+            
+            % create figure q_3
+            fig_handle7 = figure('Name','q_3','Position',[200 10 400 400]);
+            ax_h7 = axes(fig_handle7,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h7.XLim = [0 1.3*MaxTime];
+            ax_h7.YLim = [cfg.q_min(3) cfg.q_max(3)];
+            
+            % create figure q_4
+            fig_handle8 = figure('Name','q_4','Position',[200 10 400 400]);
+            ax_h8 = axes(fig_handle8,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h8.XLim = [0 1.3*MaxTime];
+            ax_h8.YLim = [cfg.q_min(4) cfg.q_max(4)];
+            
+            % create figure q_5
+            fig_handle9 = figure('Name','q_5','Position',[200 10 400 400]);
+            ax_h9 = axes(fig_handle9,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h9.XLim = [0 1.3*MaxTime];
+            ax_h9.YLim = [cfg.q_min(5) cfg.q_max(5)];
+            
+            % create figure q_6
+            fig_handle10 = figure('Name','q_6','Position',[200 10 400 400]);
+            ax_h10 = axes(fig_handle10,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h10.XLim = [0 1.3*MaxTime];
+            ax_h10.YLim = [cfg.q_min(6) cfg.q_max(6)];
+            
+            % create figure q_7
+            fig_handle11 = figure('Name','q_7','Position',[200 10 400 400]);
+            ax_h11 = axes(fig_handle11,'View',[0 90]);
+            axis equal
+            hold on
+%             ax_h11.XLim = [0 1.3*MaxTime];
+            ax_h11.YLim = [cfg.q_min(7) cfg.q_max(7)];
+            
+            % plot DOF-DOF-dot
+            t_end1 = 0;
+            t_end2 = 0;
+            t_end3 = 0;
+            t_end4 = 0;
+            t_end5 = 0;
+            t_end6 = 0;
+            t_end7 = 0;
+            for i = 1 : size(path,2)-1
+                t_end1 = plot_qdot(path(:,i), path(:,i+1), cfg, 1, t_end1, ax_h5);
+                t_end2 = plot_qdot(path(:,i), path(:,i+1), cfg, 2, t_end2, ax_h6);
+                t_end3 = plot_qdot(path(:,i), path(:,i+1), cfg, 3, t_end3, ax_h7);
+                t_end4 = plot_qdot(path(:,i), path(:,i+1), cfg, 4, t_end4, ax_h8);
+                t_end5 = plot_qdot(path(:,i), path(:,i+1), cfg, 5, t_end5, ax_h9);
+                t_end6 = plot_qdot(path(:,i), path(:,i+1), cfg, 6, t_end6, ax_h10);
+                t_end7 = plot_qdot(path(:,i), path(:,i+1), cfg, 7, t_end7, ax_h11);
+            end
         end
-    end  
-    
+    end
     Time = Time + toc();
     
     
     % moving the robot
-    if cfg.anime
+    if cfg.display3 && cfg.anime
         q_list = [];
         for i = 1:size(path,2)-1
             q_stage = plot_anime(path(:,i), path(:,i+1), cfg);
@@ -274,25 +351,75 @@ if pathFound
     fprintf('Runing time = %d \nNumber of iteration = %d \nNumber of expended nodes = %d \nPath Length = %d \n\n', Time, counter_rand,size(RRTree,2),pathLength);   % 打印运行时间toc和路径长度
     
     % save data
-    %     if exist('results/result.mat')
-    %         load('results/result.mat');
-    %         result(end+1,:) = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
-    %     else
-    %         result = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
-    %     end
-    %     save 'results/result.mat' result
+    if exist('results/result.mat')
+        load('results/result.mat');
+        result(end+1,:) = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
+    else
+        result = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
+    end
+    save 'results/result.mat' result
+    
+    if ~cfg.display1 && ~cfg.display2 && ~cfg.display3 && cfg.display4
+        if cfg.dim == 2
+            cfg.display2 = 1;
+        end
+        cfg.display3 = 1;
+        handle = visual_init(obs, cfg, cfg.y_f);
+        handle.anime = [];
+        
+        % plot the progress of planning
+        for i = 2 : size(RRTree,2)
+            plot_curve_kd(RRTree(1:2*cfg.dim,RRTree(end,i)), RRTree(1:2*cfg.dim,i), cfg, handle);
+        end
+        
+        % add final path
+        if cfg.display2 && cfg.dim == 2
+            plot_curve_kd(closestNode, cfg.end_coords, cfg, handle);
+        end
+        if cfg.display3 == 1
+            tmp_new = calc_fk(closestNode(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base); % change [q2 q1] to [q1 q2]
+            tmp_close = calc_fk(cfg.end_coords(1:cfg.dim),cfg.r,cfg.d,cfg.alpha,cfg.base);
+            line(handle.ax_h3,[tmp_close(end,1);tmp_new(end,1)],[tmp_close(end,2);tmp_new(end,2)]);
+        end
+        
+        % plot planned path
+        for i = 1 : size(path,2)-1
+            if cfg.display2 || cfg.display3
+                plot_curve_kd(path(1:2*cfg.dim,i), path(1:2*cfg.dim,i+1), cfg, handle, [1 0 0], 2);
+            end
+        end
+        
+        % moving the robot
+        if cfg.display3 && cfg.anime
+            q_list = [];
+            for i = 1:size(path,2)-1
+                q_stage = plot_anime(path(:,i), path(:,i+1), cfg);
+                q_list = [q_list, q_stage];
+            end
+            for i = 1:size(q_list,2)
+                if ~isempty(handle.anime)
+                    set(handle.anime,'visible','off');
+                end
+                figure(handle.fig_handle3);
+                hold on
+                handle.anime = create_r(handle.ax_h3,q_list(:,i), cfg.r, cfg.d, cfg.alpha, cfg.base);
+                pause(0.1);
+                hold off
+            end
+        end
+    end
 else
     Time = Time + toc();
     fprintf('Runing time = %d \nNumber of iteration = %d \nNumber of expended nodes = %d \nPath Length = %d \n\n', Time, counter_rand,size(RRTree,2),0);   % 打印运行时间toc和路径长度
     
-    % save data
-    %     if exist('results/result.mat')
-    %         load('results/result.mat');
-    %         result(end+1,:) = [cfg.start_coords', cfg.end_coords', Time, 10000, size(RRTree,2), 10000];
-    %     else
-    %         result = [cfg.start_coords', cfg.end_coords', Time, 10000, size(RRTree,2), 10000];
-    %     end
-    %     save 'results/result.mat' result
+    %     save data
+    if exist('results/result.mat')
+        load('results/result.mat');
+        result(end+1,:) = [cfg.start_coords', cfg.end_coords', Time, 10000, size(RRTree,2), 10000];
+    else
+        result = [cfg.start_coords', cfg.end_coords', Time, 10000, size(RRTree,2), 10000];
+    end
+    save 'results/result.mat' result
 end
 end
 %%
