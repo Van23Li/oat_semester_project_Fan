@@ -110,7 +110,8 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
     
     %% Calculate the new node
     if M > cfg.stepsize
-        newPoint = closestNode + (sample-closestNode)/norm(sample-closestNode, 2) * cfg.stepsize;
+%         newPoint = closestNode + (sample-closestNode)/norm(sample-closestNode, 2) * cfg.stepsize;
+        newPoint = sample;
     else
         newPoint = sample;  % [q1; q2]
     end
@@ -126,13 +127,13 @@ while failedAttempts <= cfg.maxFailedAttempts && counter_rand <= cfg.maxSample
         if cfg.grad_heuristic && closestNode_int > 0
             [newPoint_RRTstar, Joint] = NewNodeGrad(pos_enc, closestNode, ...
                 collidedPose, ObsPoint, closestNode_int, RRTree, cfg);
-        end
+%         end
         
         % visualize collied point
         if cfg.display1 || cfg.display2 || cfg.display3
             handle = display_when_collied(handle, cfg, collidedPose, ObsPoint, Joint, closestNode_int, newPoint_RRTstar);
         end
-        
+        end
         % update newPoint
         if cfg.grad_heuristic && closestNode_int > 0
             if sum(newPoint_RRTstar' < cfg.q_min(1:cfg.dim)) || sum(newPoint_RRTstar' > cfg.q_max(1:cfg.dim))

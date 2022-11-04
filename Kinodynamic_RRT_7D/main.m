@@ -13,8 +13,8 @@ cfg.kinodynamic = true;
 cfg.circle_obs = true;  % when equals to true, assuming the obstacle as a
 % sphere;  when equals to false, dividing it to many points.
 cfg.display1 = false;
-cfg.display2 = false;
-cfg.display3 = false;   % whether to plot figure 1, 2, 3 during planning.
+cfg.display2 = true;
+cfg.display3 = true;   % whether to plot figure 1, 2, 3 during planning.
 cfg.display4 = true;    % whether to plot figure after planning.
 cfg.display5 = true;    % whether to plot q-q_dot.
 cfg.anime = true;    % whether to plot the anime.
