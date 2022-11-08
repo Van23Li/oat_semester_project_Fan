@@ -55,13 +55,13 @@ if cfg.display2 & cfg.dim == 2
         if cfg.circle_obs
             % Compute Configuration Space
             if ~exist('RRT/cspace_2_NN_circle.mat','file')
-                cspace = zeros(size(cfg.q_min(1) : 0.001*pi : cfg.q_max(1),2),...
-                    size(cfg.q_min(2) : 0.001*pi : cfg.q_max(2),2));
+                cspace = zeros(size(cfg.q_min(1) : 0.005*pi : cfg.q_max(1),2),...
+                    size(cfg.q_min(2) : 0.005*pi : cfg.q_max(2),2));
                 pos_enc = @(x)[x sin(x) cos(x)];
                 ii = 0;
-                for i = cfg.q_min(1) : 0.001*pi : cfg.q_max(1)
+                for i = cfg.q_min(1) : 0.005*pi : cfg.q_max(1)
                     ii = ii + 1; jj = 0;
-                    for j = cfg.q_min(2) : 0.001*pi : cfg.q_max(2)
+                    for j = cfg.q_min(2) : 0.005*pi : cfg.q_max(2)
                         jj = jj + 1;
                         inp = pos_enc([repmat([i;j]',[size(obs.centers,1),1]), obs.centers])';
                         val = y_f(inp);
@@ -241,7 +241,7 @@ end
     function handle = create_r(ax_h,j_state,r,d,alpha,base)
         pts = calc_fk(j_state,r,d,alpha,base);
         handle = plot(ax_h, pts(:,1),pts(:,2),'LineWidth',2,...
-            'Marker','o','MarkerFaceColor','k','MarkerSize',4, 'Color', [0,0,1])
+            'Marker','o','MarkerFaceColor','k','MarkerSize',4, 'Color', [0,0,1]);
     end
 
     function pts = calc_fk(j_state,r,d,alpha,base)

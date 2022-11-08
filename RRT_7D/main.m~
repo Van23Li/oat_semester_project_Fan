@@ -12,8 +12,8 @@ cfg.dim = 2;    % planning in cfg.dim-D case.
 cfg.circle_obs = true;  % when equals to true, assuming the obstacle as a 
                       % sphere;  when equals to false, dividing it to many points.
 cfg.display1 = false;
-cfg.display2 = false;
-cfg.display3 = false;   % whether to plot figure 1, 2, 3 during planning.
+cfg.display2 = true;
+cfg.display3 = true;   % whether to plot figure 1, 2, 3 during planning.
 cfg.display4 = false;    % whether to plot figure after planning.
 cfg.maxSample = 2000;  % the maximum number of random samples.
 
@@ -71,7 +71,7 @@ for Obs_int = 1:5
         %     obs.vertices = [4 3; 4 4; 5 3; 5 4 ; -5 5; -5 7; -7 5; -7 7; -8 -6; 8 -6; -8 -10; 8 -10];
         %     obs.faces = [1 2 3; 2 3 4 ; 5 6 7; 6 7 8; 9 10 11; 10 11 12];
 
-        obs = generate_obs(5, 10, 1.5, 0.5, cfg);
+        obs = generate_obs(3, 7, 1.5, 0.5, cfg);
     end
 
     for State_int = 1:5
@@ -97,35 +97,34 @@ for Obs_int = 1:5
             collided2 = checkPath_single(cfg.end_coords, obs, cfg.y_f, cfg.circle_obs, cfg.dim);
         end
 
-        for RRT_star = [0, 1]
+        for RRT_star = 1
             cfg.RRT_star = RRT_star;
-            for grad_heuristic = [0, 1]
-                cfg.grad_heuristic = grad_heuristic;
-                cfg.NN_check = 1;
-                fprintf('RRT_star = %d \nHeuristic = %d \n\n', cfg.RRT_star,cfg.grad_heuristic);
-                
+            for NN_check = 1
+                cfg.NN_check = NN_check;
+                fprintf('RRT_star = %d \nNN_check = %d \n\n', cfg.RRT_star,cfg.NN_check);
+
+                if cfg.NN_check
+                    cfg.grad_heuristic = 1;
+                else
+                    cfg.grad_heuristic = 0;
+                end
+
                 close all
 
 
-                for i = 1:100
-                    Name_result = ['results/Obs', num2str(Obs_int), '_State', num2str(State_int), ...
-                        '_RRTStar', num2str(cfg.RRT_star), '_Heuristic', num2str(cfg.grad_heuristic), '.mat'];
+                for i = 1:50
                     % Add data
-                    if exist(Name_result)
-                        load(Name_result);
-                        result(end + 1, :).obs = obs;
-                        result(end, :).start_coords = cfg.start_coords;
-                        result(end, :).end_coords = cfg.end_coords;
+                    if exist(['results/Obs', num2str(Obs_int), '_State', '.mat'])
+                        load('results/result.mat');
+                        result(end+1,:) = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
                     else
-                        result(1).obs = obs;
-                        result(1).start_coords = cfg.start_coords;
-                        result(1).end_coords = cfg.end_coords;
+                        result = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
                     end
-                    save(Name_result, 'result');
+                    save 'results/result.mat' result
                     
                     % Plan a path
                     path = RRT(@()(RandomSample(obs,cfg.q_min,cfg.q_max,cfg.dim,cfg)), @Dist, ...
-                        obs, cfg, Name_result);
+                        obs, cfg);
                 end
             end
         end

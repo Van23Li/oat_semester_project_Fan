@@ -1,4 +1,4 @@
-function path = RRT (RandomSample, Dist, obs, cfg, Name_result)
+function path = RRT (RandomSample, Dist, obs, cfg)
 % RRT - Rapidly-exploring Random Trees : This procedure computes a path
 % using RRT. It relies on 2 functions:
 % RandomSample which generates the coordinate vector for a random sample in free space.
@@ -256,13 +256,13 @@ if pathFound
     fprintf('Runing time = %d \nNumber of iteration = %d \nNumber of expended nodes = %d \nPath Length = %d \n\n', Time, counter_rand,size(RRTree,2),pathLength);   % 打印运行时间toc和路径长度
     
     % save data
-    load(Name_result);
-    result(end).Time = Time;
-    result(end).Counter_rand = counter_rand;
-    result(end).NumOfNodes = size(RRTree,2);
-    result(end).PathLength = pathLength;
-
-    save(Name_result,'result');
+        if exist('results/result.mat')
+            load('results/result.mat');
+            result(end+1,:) = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
+        else
+            result = [cfg.start_coords', cfg.end_coords', Time, counter_rand, size(RRTree,2), pathLength];
+        end
+        save 'results/result.mat' result
     
     
     if ~cfg.display1 && ~cfg.display2 && ~cfg.display3 && cfg.display4
@@ -316,13 +316,14 @@ else
     fprintf('Runing time = %d \nNumber of iteration = %d \nNumber of expended nodes = %d \nPath Length = %d \n\n', Time, counter_rand,size(RRTree,2),0);   % 打印运行时间toc和路径长度
     
     % save data
-    load(Name_result);
-    result(end).Time = Time;
-    result(end).Counter_rand = 10000;
-    result(end).NumOfNodes = size(RRTree,2);
-    result(end).PathLength = 0;
+    %     if exist('results/result.mat')
+    %         load('results/result.mat');
+    %         result(end+1,:) = [cfg.start_coords', cfg.end_coords', Time, 10000, size(RRTree,2), 0s];
+    %     else
+    %         result = [cfg.start_coords', cfg.end_coords', Time, 10000, size(RRTree,2), 0];
+    %     end
+    %     save 'results/result.mat' result
 
-    save(Name_result,'result');
 end
 
 end
