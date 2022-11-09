@@ -105,9 +105,10 @@ for Obs_int = 1:5
                 fprintf('RRT_star = %d \nHeuristic = %d \n\n', cfg.RRT_star,cfg.grad_heuristic);
                 
                 close all
+                clear result
 
 
-                for i = 1:100
+                for i = 1:5
                     Name_result = ['results/Obs', num2str(Obs_int), '_State', num2str(State_int), ...
                         '_RRTStar', num2str(cfg.RRT_star), '_Heuristic', num2str(cfg.grad_heuristic), '.mat'];
                     % Add data
