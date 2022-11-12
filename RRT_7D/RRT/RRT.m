@@ -31,7 +31,7 @@ function path = RRT (RandomSample, Dist, obs, cfg, Name_result)
 %    path : An array containing the linear indices of the cells along the
 %    shortest path from start to dest or an empty array if there is no
 %    path.
-
+fig_name = 1;
 pos_enc = @(x)[x sin(x) cos(x)];
 
 % initialize the figure handle
@@ -269,25 +269,48 @@ if pathFound
         cfg.display2 = 1;
         cfg.display3 = 1;
         handle = visual_init(obs, cfg, cfg.y_f);
+        if cfg.save_fig
+            saveas(handle.fig_handle2,['results_fig/fig2_', num2str(fig_name),'.jpg']);
+            saveas(handle.fig_handle3,['results_fig/fig3_', num2str(fig_name),'.jpg']);
+            fig_name = fig_name + 1;
+        end
         for i = 2 : size(RRTree,2)
             if cfg.dim == 2
                 line(handle.ax_h2,[RRTree(2,i), RRTree(2,RRTree(4,i))],...
                     [RRTree(1,i), RRTree(1,RRTree(4,i))],...
                     'color',[0 0 1]);
+                if cfg.save_fig
+                    saveas(handle.fig_handle2,['results_fig/fig2_', num2str(fig_name),'.jpg']);
+                end
             end
             tmp_new = calc_fk(RRTree(1:cfg.dim,i),cfg.r,cfg.d,cfg.alpha,cfg.base);
             tmp_close = calc_fk(RRTree(1:cfg.dim,RRTree(end,i)),cfg.r,cfg.d,cfg.alpha,cfg.base);
 
             line(handle.ax_h3,[tmp_close(end,1);tmp_new(end,1)],[tmp_close(end,2);tmp_new(end,2)],'color',[0 0 1]);
+            if cfg.save_fig
+                saveas(handle.fig_handle3,['results_fig/fig3_', num2str(fig_name),'.jpg']);
+                fig_name = fig_name + 1;
+            end
             drawnow
         end
         if cfg.dim == 2
             line(handle.ax_h2,[closestNode(2);cfg.end_coords(2)],[closestNode(1);cfg.end_coords(1)]);
+            if cfg.save_fig
+                saveas(handle.fig_handle2,['results_fig/fig2_', num2str(fig_name),'.jpg']);
+            end
         end
-
+        tmp_close = calc_fk(closestNode,cfg.r,cfg.d,cfg.alpha,cfg.base);
+        tmp_end = calc_fk(cfg.end_coords,cfg.r,cfg.d,cfg.alpha,cfg.base);
+        line(handle.ax_h3,[tmp_close(end,1);tmp_end(end,1)],[tmp_close(end,2);tmp_end(end,2)],'color',[0 0 1]);
+        if cfg.save_fig
+            saveas(handle.fig_handle3,['results_fig/fig3_', num2str(fig_name),'.jpg']);
+            fig_name = fig_name + 1;
+        end
+        
         for i = 1 : size(path,2)-1
             if cfg.dim == 2
                 line(handle.ax_h2,path(2,i:i+1),path(1,i:i+1),'color',[1 0 0],'linewidth',2);
+                saveas(handle.fig_handle2,['results_fig/fig2_', num2str(fig_name),'.jpg']);
             end
 
             tmp_new = calc_fk(path(:,i),cfg.r,cfg.d,cfg.alpha,cfg.base);
@@ -295,19 +318,33 @@ if pathFound
 
             line(handle.ax_h3,[tmp_close(end,1);tmp_new(end,1)],[tmp_close(end,2);tmp_new(end,2)],'color',[1 0 0],'linewidth',2);
             drawnow
+            if cfg.save_fig
+                saveas(handle.fig_handle3,['results_fig/fig3_', num2str(fig_name),'.jpg']);
+                fig_name = fig_name + 1;
+            end
         end
 
         % anime
         handle.anime = [];
-        for i = 1:size(path,2)
-            % moving the robot
-            if ~isempty(handle.anime)
-                set(handle.anime,'visible','off');
+        for i = 1:size(path,2)-1
+            x_int = linspace(path(1,i), path(1,i+1), 10);
+            y_int = linspace(path(2,i), path(2,i+1), 10);
+            for j = 1:10
+            
+                % moving the robot
+                if ~isempty(handle.anime)
+                    set(handle.anime,'visible','off');
+                end
+                hold on
+                handle.anime = create_r(handle.ax_h3,[x_int(j); y_int(j)], cfg.r, cfg.d, cfg.alpha, cfg.base);
+%                 pause(0.2);
+                hold off
+                if cfg.save_fig
+                    saveas(handle.fig_handle3,['results_fig/fig3_', num2str(fig_name),'.jpg']);
+                    fig_name = fig_name + 1;
+                end
             end
-            hold on
-            handle.anime = create_r(handle.ax_h3,path(:,i), cfg.r, cfg.d, cfg.alpha, cfg.base);
-            pause(0.2);
-            hold off
+            
         end
     end
     
@@ -343,7 +380,7 @@ end
 function handle = create_r(ax_h,j_state,r,d,alpha,base)
 pts = calc_fk(j_state,r,d,alpha,base);
 handle = plot(ax_h,pts(:,1),pts(:,2),'LineWidth',2,...
-    'Marker','o','MarkerFaceColor','k','MarkerSize',4);
+    'Marker','o','MarkerFaceColor','k','MarkerSize',4,'Color',[0,0,1]);
 end
 
 function move_r(r_handle,j_state,r,d,alpha,base)
@@ -397,6 +434,7 @@ if cfg.display2 && cfg.dim == 2
     if ~isempty(handle.Point_2)
         set(handle.Point_2,'visible','off');
         set(handle.Quiver_2,'visible','off');
+        set(handle.Point_22,'visible','off');
     end
     handle.Point_2 = plot(handle.ax_h2, collidedPose(2),collidedPose(1),'*r');
     if cfg.NN_check
@@ -409,9 +447,6 @@ if cfg.display2 && cfg.dim == 2
     %%%%%%%%%%%%%%%%%%%%%%%% Update newPoint is cfg.grad_heuristic = Ture %%%%%%%%%%%%%%%%%%%%%%%%
     if cfg.grad_heuristic && closestNode_int > 0
         hold on
-        if ~isempty(handle.Point_22)
-            set(handle.Point_22,'visible','off');
-        end
         %                 quiver(closestNode(1),closestNode(2),d_vector(1),d_vector(2));
         %                 quiver(closestNode(1),closestNode(2),projection(1),projection(2));
         handle.Point_22 = plot(handle.ax_h2,newPoint_RRTstar(2),newPoint_RRTstar(1),'or');

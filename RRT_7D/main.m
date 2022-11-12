@@ -14,7 +14,8 @@ cfg.circle_obs = true;  % when equals to true, assuming the obstacle as a
 cfg.display1 = false;
 cfg.display2 = false;
 cfg.display3 = false;   % whether to plot figure 1, 2, 3 during planning.
-cfg.display4 = false;    % whether to plot figure after planning.
+cfg.display4 = true;    % whether to plot figure after planning.
+cfg.save_fig = true;
 cfg.maxSample = 2000;  % the maximum number of random samples.
 
 cfg.stepsize = 0.1 * pi;    % 0.095 * pi;
@@ -57,13 +58,13 @@ elseif cfg.dim == 7
     cfg.q_max(1) = 1.1 * pi;
 end
 
-for Obs_int = 1:5
+for Obs_int = 1
     % Add obstacles
     % load('obs_data.mat');
     [obs_data] = xlsread('obs_data.xlsx');
     if cfg.circle_obs
-    %     obs.centers = obs_data(:,1:2);
-    %     obs.radiuses = obs_data(:,3);
+        obs.centers = obs_data(:,1:2);
+        obs.radiuses = obs_data(:,3);
 
         %     obs.vertices = [4 3; 4 4; 5 3; 5 4 ; -5 5; -5 7; -7 5; -7 7; -8 -6; 8 -6; -8 -10; 8 -10];
         %     obs.faces = [1 2 3; 2 3 4 ; 5 6 7; 6 7 8; 9 10 11; 10 11 12];
@@ -71,20 +72,20 @@ for Obs_int = 1:5
         %     obs.vertices = [4 3; 4 4; 5 3; 5 4 ; -5 5; -5 7; -7 5; -7 7; -8 -6; 8 -6; -8 -10; 8 -10];
         %     obs.faces = [1 2 3; 2 3 4 ; 5 6 7; 6 7 8; 9 10 11; 10 11 12];
 
-        obs = generate_obs(5, 10, 1.5, 0.5, cfg);
+%         obs = generate_obs(5, 10, 1.5, 0.5, cfg);
     end
 
-    for State_int = 1:5
+    for State_int = 1
         % Add start and ending pose
         collided1 = 1;
         collided2 = 1;
         while collided1 || collided2
             if cfg.dim == 2
-                cfg.start_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
-                cfg.end_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
+%                 cfg.start_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
+%                 cfg.end_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
 
-        %         cfg.start_coords = [-2.5; -1];  % [q1; q2]
-        %         cfg.end_coords = [2.7; 0];
+                cfg.start_coords = [-2.5; -1];  % [q1; q2]
+                cfg.end_coords = [2.7; 0];
             elseif cfg.dim == 7
         %         cfg.start_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
         %         cfg.end_coords = cfg.q_min(1:cfg.dim)' + (cfg.q_max(1:cfg.dim)-cfg.q_min(1:cfg.dim))'.*rand(cfg.dim,1);
@@ -97,9 +98,9 @@ for Obs_int = 1:5
             collided2 = checkPath_single(cfg.end_coords, obs, cfg.y_f, cfg.circle_obs, cfg.dim);
         end
 
-        for RRT_star = [0, 1]
+        for RRT_star = 0
             cfg.RRT_star = RRT_star;
-            for grad_heuristic = [0, 1]
+            for grad_heuristic = 1
                 cfg.grad_heuristic = grad_heuristic;
                 cfg.NN_check = 1;
                 fprintf('RRT_star = %d \nHeuristic = %d \n\n', cfg.RRT_star,cfg.grad_heuristic);
@@ -108,7 +109,7 @@ for Obs_int = 1:5
                 clear result
 
 
-                for i = 1:5
+                for i = 1
                     Name_result = ['results/Obs', num2str(Obs_int), '_State', num2str(State_int), ...
                         '_RRTStar', num2str(cfg.RRT_star), '_Heuristic', num2str(cfg.grad_heuristic), '.mat'];
                     % Add data
