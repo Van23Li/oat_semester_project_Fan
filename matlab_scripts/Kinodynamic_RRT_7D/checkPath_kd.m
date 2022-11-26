@@ -21,7 +21,7 @@ if NN_check
             i = i + 1;
             for j = 1:cfg.dim
                 if t < newPos.t_1(j)
-                    q_1 = n(j) + n(j+2) * t + 1/2 * newPos.a_1(j) * t^2;
+                    q_1 = n(j) + n(j+cfg.dim) * t + 1/2 * newPos.a_1(j) * t^2;
                 elseif t < newPos.t_1(j) + newPos.t_v(j)
                     q_1 = q_1_end(j) + v_1_end(j) * (t - newPos.t_1(j));
                 else
