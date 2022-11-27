@@ -2,9 +2,12 @@ import numpy as np
 import random
 from src.rrt.rrt import RRT
 from src.rrt.tree import Tree
+from obs_checking.OptimalModulationDS.python_scripts.parse_matlab_network import Net
+import scipy.io as sio
+import torch
 
 class RRTKd(RRT):
-    def __init__(self, X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, prc=0.01):
+    def __init__(self, X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, Obstacles = None, prc=0.01, CheckNN=False):
         """
         RRT* Search
         :param X: Search Space
@@ -25,11 +28,24 @@ class RRTKd(RRT):
         self.X_limits = X_limits
         self.V_limits = V_limits
         self.A_limits = A_limits
+        self.Obstacles = Obstacles
+        self.CheckNN = CheckNN
+        if CheckNN:
+            mat_contents = sio.loadmat(
+                '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
+            W = mat_contents['W'][0]
+            b = mat_contents['b'][0]
+
+            # create net
+            self.net = Net()
+            self.net.setWeights(W, b)
 
         self.v_init = v_init
         self.v_goal = v_goal
         self.trees_v = []  # list of all trees
         self.add_tree_v()  # add initial tree
+
+
 
     def add_tree_v(self):
         """
@@ -164,7 +180,6 @@ class RRTKd(RRT):
 
     def checkPath_kd(self, n_x, n_v, newPos):
         # newPos include [a_1, v_limit, a_2, t_1, t_v, t_2]
-        collided = False
         a_1 = newPos[0]
         v_limit = newPos[1]
         a_2 = newPos[2]
@@ -189,7 +204,12 @@ class RRTKd(RRT):
                 else:
                     q_1 = q_v_end[j] + v_v_end[j] * (t - t_v[j] - t_1[j]) + 1 / 2 * a_2[j] * np.square(t - t_v[j] - t_1[j])
                 q_check[j] = q_1
-            if not self.X.obstacle_free(tuple(q_check)) or sum(q_check < self.X_limits[:,0]) or sum(q_check > self.X_limits[:,1]):
+            if self.CheckNN:
+                collied_free = self.collied_check(q_check)
+            else:
+                collied_free = self.X.obstacle_free(q_check)  # equals to True if free
+
+            if not collied_free or sum(q_check < self.X_limits[:,0]) or sum(q_check > self.X_limits[:,1]):
                 return True, q_check
 
         return False, q_check
@@ -210,6 +230,11 @@ class RRTKd(RRT):
             return True
         return False
 
+    def collied_check(self, x_rand):
+        inp = np.concatenate([np.tile(x_rand, [len(self.Obstacles), 1]), self.Obstacles[:, 0:2]], axis=1)
+        val = self.net.forward(torch.Tensor(inp))
+        return (val.detach().numpy().reshape([1, -1]) > self.Obstacles[:, -1]).all()
+
     def new(self):
         """
         Return a new steered vertex
@@ -218,7 +243,11 @@ class RRTKd(RRT):
         x_rand = self.X.sample_free()
         v_rand = self.V.sample_free()
         # check if new point is in X_free and not already in V
-        if (not self.trees[0].V.count(x_rand) == 0 and not self.trees_v[0].V.count(v_rand) == 0) or not self.X.obstacle_free(x_rand):
+        if self.CheckNN:
+            collied_free = self.collied_check(x_rand)
+        else:
+            collied_free = self.X.obstacle_free(x_rand) # equals to True if free
+        if (not self.trees[0].V.count(x_rand) == 0 and not self.trees_v[0].V.count(v_rand) == 0) or not collied_free:
             return None, None
         self.samples_taken += 1
         return x_rand, v_rand

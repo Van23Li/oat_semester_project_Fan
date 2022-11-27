@@ -1,8 +1,10 @@
 import numpy as np
+import time
 
 from src.rrt.rrt_kd import RRTKd
 from src.search_space.search_space import SearchSpace
-from src.utilities.obstacle_generation import generate_random_obstacles
+# from src.utilities.obstacle_generation import generate_random_obstacles
+from src.utilities.obstacle_circle_generation import generate_random_obstacles
 from src.utilities.plotting import Plot
 from src.utilities.plotting_kd import Plot_kd
 
@@ -41,19 +43,31 @@ prc = 0.1  # probability of checking for a connection to goal
 X = SearchSpace(X_dimensions)
 V = SearchSpace(V_dimensions)
 n = 15
-# Obstacles = generate_random_obstacles(SearchSpace(X_dimensions[0:dim]), x_init[0:dim], x_goal[0:dim], n)
-Obstacles = generate_random_obstacles(X, x_init, x_goal, n)
-# create rrt_search
-rrt = RRTKd(X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, prc)
+# Obstacles = generate_random_obstacles(X, x_init, x_goal, n)
+Obstacles = np.array([[ 4.5,  3.5,  0.5],
+                      [-6.0,  6.0,  1.0],
+                      [-6.0, -7.0,  2.0],
+                      [-3.0, -7.0,  2.0],
+                      [ 0.0, -7.0,  2.0]])  # [centers,radiuses]
+
+Start_time = time.perf_counter()
+
+# create rrt_sear
+rrt = RRTKd(X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, Obstacles, prc, CheckNN=True)
 # path = rrt.rrt_search()
 path_x, path_v = rrt.rrt_kd()
 
+End_time = time.perf_counter()
+print("Running time: ")
+print(End_time - Start_time)
+
 # plot
-plot = Plot_kd("rrt_2d_with_random_obstacles", V_limits, A_limits)
+plot = Plot_kd("rrt_2d_with_random_obstacles", X_limits, V_limits, A_limits)
 plot.plot_tree(X, rrt.trees, rrt.trees_v)
 if path_x is not None and path_v is not None:
     plot.plot_path(X, path_x, path_v)
-plot.plot_obstacles(X, Obstacles)
+# plot.plot_obstacles(X, Obstacles)
+plot.plot_obstacles_circle(X, Obstacles, 0.01*np.pi)
 plot.plot_start(X, x_init)
 plot.plot_goal(X, x_goal)
 plot.draw(auto_open=True)

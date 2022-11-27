@@ -2,17 +2,22 @@
 # file 'LICENSE', which is part of this source code package.
 import numpy as np
 import plotly as py
+import os.path
+from obs_checking.OptimalModulationDS.python_scripts.parse_matlab_network import Net
 from plotly import graph_objs as go
+import scipy.io as sio
+import torch
 
 colors = ['darkblue', 'teal']
 
 
 class Plot_kd(object):
-    def __init__(self, filename, V_limits, A_limits):
+    def __init__(self, filename, X_limits, V_limits, A_limits):
         """
         Create a plot
         :param filename: filename
         """
+        self.X_limits = X_limits
         self.V_limits = V_limits
         self.A_limits = A_limits
         self.filename = "../../output/visualizations/" + filename + ".html"
@@ -230,6 +235,66 @@ class Plot_kd(object):
         else:  # can't plot in higher dimensions
             print("Cannot plot in > 3 dimensions")
 
+    def plot_obstacles_circle(self, X, O, resolution):
+        """
+        Plot obstacles
+        :param X: Search Space
+        :param O: list of obstacles
+        """
+        if X.dimensions == 2:  # plot in 2D
+            if os.path.isfile("cspace_2_NN_circle.npy"):
+                cspace = np.load("cspace_2_NN_circle.npy")
+            else:
+                # load weights
+                mat_contents = sio.loadmat('../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
+                W = mat_contents['W'][0]
+                b = mat_contents['b'][0]
+
+                # create net
+                net = Net()
+                net.setWeights(W, b)
+
+                cspace = np.ones([np.size(np.arange(self.X_limits[0][0], self.X_limits[0][1], resolution)), np.size(np.arange(self.X_limits[1][0], self.X_limits[1][1], resolution))])
+                ii = 0
+                for i in np.arange(self.X_limits[0][0], self.X_limits[0][1], resolution):
+                    jj = 0
+                    for j in np.arange(self.X_limits[1][0], self.X_limits[1][1], resolution):
+                        inp = np.concatenate([np.tile([i, j],[len(O),1]),O[:,0:2]],axis=1)
+                        val = net.forward(torch.Tensor(inp))
+                        if (val.detach().numpy().reshape([1,-1]) > O[:,-1]).all():
+                            cspace[ii][jj] = 0
+                        jj = jj + 1
+                    ii = ii + 1
+                    print(ii)
+                np.save("cspace_2_NN_circle.npy", cspace)
+
+            self.layout['shapes'] = []
+            ii = 0
+            for i in np.arange(self.X_limits[0][0], self.X_limits[0][1], resolution):
+                jj = 0
+                for j in np.arange(self.X_limits[1][0], self.X_limits[1][1], resolution):
+                    if cspace[ii][jj]:
+                        # noinspection PyUnresolvedReferences
+                        self.layout['shapes'].append(
+                            {
+                                'type': 'rect',
+                                'x0': i,
+                                'y0': j,
+                                'x1': i + resolution,
+                                'y1': j + resolution,
+                                'line': {
+                                    'color': 'purple',
+                                    'width': 4,
+                                },
+                                'fillcolor': 'purple',
+                                'opacity': 0.70
+                            },
+                        )
+                    jj = jj + 1
+                ii = ii + 1
+        else:  # can't plot in higher dimensions
+            print("Cannot plot in > 3 dimensions")
+
     def plot_path(self, X, path_x, path_v):
         """
         Plot path through Search Space
@@ -283,27 +348,8 @@ class Plot_kd(object):
                             mode="lines"
                         )
                         self.data.append(trace)
-
-        elif X.dimensions == 3:  # plot in 3D
-            x, y, z = [], [], []
-            for i in path:
-                x.append(i[0])
-                y.append(i[1])
-                z.append(i[2])
-            trace = go.Scatter3d(
-                x=x,
-                y=y,
-                z=z,
-                line=dict(
-                    color="red",
-                    width=2
-                ),
-                mode="lines"
-            )
-
-            self.data.append(trace)
         else:  # can't plot in higher dimensions
-            print("Cannot plot in > 3 dimensions")
+            print("Cannot plot in > 2 dimensions")
 
     def plot_start(self, X, x_init):
         """
