@@ -53,7 +53,7 @@ Obstacles = np.array([[ 4.5,  3.5,  0.5],
 Start_time = time.perf_counter()
 
 # create rrt_sear
-rrt = RRTKd(X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, Obstacles, prc, CheckNN=True)
+rrt = RRTKd(X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, prc, Obstacles, CheckNN=True)
 # path = rrt.rrt_search()
 path_x, path_v = rrt.rrt_kd()
 

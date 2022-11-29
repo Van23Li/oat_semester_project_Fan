@@ -10,6 +10,7 @@ from src.utilities.plotting import Plot
 X_dimensions = np.array([(0, 100), (0, 100)])  # dimensions of Search Space
 x_init = (0, 0)  # starting location
 x_goal = (100, 100)  # goal location
+X_limits = X_dimensions
 
 Q = np.array([(8, 4)])  # length of tree edges
 r = 1  # length of smallest edge to check for intersection with obstacles
@@ -26,7 +27,7 @@ rrt = RRTStar(X, Q, x_init, x_goal, max_samples, r, prc, rewire_count)
 path = rrt.rrt_star()
 
 # plot
-plot = Plot("rrt_star_2d_with_random_obstacles")
+plot = Plot("rrt_star_2d_with_random_obstacles", X_limits)
 plot.plot_tree(X, rrt.trees)
 if path is not None:
     plot.plot_path(X, path)

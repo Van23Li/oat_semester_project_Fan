@@ -9,13 +9,13 @@ addpath('data_7d');
 
 % parameters for control
 cfg.dim = 2;    % planning in cfg.dim-D case.
-cfg.circle_obs = true;  % when equals to true, assuming the obstacle as a 
+cfg.circle_obs = false;  % when equals to true, assuming the obstacle as a 
                       % sphere;  when equals to false, dividing it to many points.
 cfg.display1 = false;
 cfg.display2 = false;
 cfg.display3 = false;   % whether to plot figure 1, 2, 3 during planning.
-cfg.display4 = true;    % whether to plot figure after planning.
-cfg.save_fig = true;
+cfg.display4 = false;    % whether to plot figure after planning.
+cfg.save_fig = false;
 cfg.maxSample = 2000;  % the maximum number of random samples.
 
 cfg.stepsize = 0.1 * pi;    % 0.095 * pi;

@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-from src.rrt.rrt import RRT
+from src.rrt.rrt_star_bid import RRTStarBidirectional
 from src.search_space.search_space import SearchSpace
 from src.utilities.obstacle_generation import generate_random_obstacles
 from src.utilities.plotting import Plot
@@ -26,6 +26,7 @@ Q = np.array([(0.1 * np.pi, 10)])  # (length of tree edges, times of randomly sa
 r = 0.04  # length of smallest edge to check for intersection with obstacles
 max_samples = 2048  # max number of samples to take before timing out
 prc = 0.1  # probability of checking for a connection to goal
+rewire_count = 10
 
 # create search space
 X = SearchSpace(X_dimensions)
@@ -39,8 +40,8 @@ Obstacles = np.array([[ 4.5,  3.5,  0.5],
 
 Start_time = time.perf_counter()
 # create rrt_search
-rrt = RRT(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN=True)
-path = rrt.rrt_search()
+rrt = RRTStarBidirectional(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN=True, rewire_count=rewire_count)
+path = rrt.rrt_star_bidirectional()
 
 End_time = time.perf_counter()
 print("Running time: ")

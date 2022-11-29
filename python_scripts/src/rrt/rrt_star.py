@@ -5,10 +5,11 @@ from operator import itemgetter
 from src.rrt.heuristics import cost_to_go
 from src.rrt.heuristics import segment_cost, path_cost
 from src.rrt.rrt import RRT
+import numpy as np
 
 
 class RRTStar(RRT):
-    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, rewire_count=None):
+    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False, rewire_count=None):
         """
         RRT* Search
         :param X: Search Space
@@ -20,7 +21,7 @@ class RRTStar(RRT):
         :param prc: probability of checking whether there is a solution
         :param rewire_count: number of nearby vertices to rewire
         """
-        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc)
+        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN)
         self.rewire_count = rewire_count if rewire_count is not None else 0
         self.c_best = float('inf')  # length of best solution thus far
 
@@ -54,8 +55,12 @@ class RRTStar(RRT):
         for c_near, x_near in L_near:
             curr_cost = path_cost(self.trees[tree].E, self.x_init, x_near)
             tent_cost = path_cost(self.trees[tree].E, self.x_init, x_new) + segment_cost(x_new, x_near)
-            if tent_cost < curr_cost and self.X.collision_free(x_near, x_new, self.r):
-                self.trees[tree].E[x_near] = x_new
+            if self.CheckNN:
+                if tent_cost < curr_cost and self.checkPath_kd(x_near, x_new, self.r):
+                    self.trees[tree].E[x_near] = x_new
+            else:
+                if tent_cost < curr_cost and self.X.collision_free(x_near, x_new, self.r):
+                    self.trees[tree].E[x_near] = x_new
 
     def connect_shortest_valid(self, tree, x_new, L_near):
         """
@@ -93,7 +98,7 @@ class RRTStar(RRT):
 
         while True:
             for q in self.Q:  # iterate over different edge lengths
-                for i in range(q[1]):  # iterate over number of edges of given length to add
+                for i in np.arange(0, q[1], 1):  # iterate over number of edges of given length to add
                     x_new, x_nearest = self.new_and_near(0, q)
                     if x_new is None:
                         continue

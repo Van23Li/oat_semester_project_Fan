@@ -1,8 +1,9 @@
 from src.rrt.rrt_base import RRTBase
+import numpy as np
 
 
 class RRT(RRTBase):
-    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01):
+    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False):
         """
         Template RRT planner
         :param X: Search Space
@@ -13,7 +14,7 @@ class RRT(RRTBase):
         :param r: resolution of points to sample along edge when checking for collisions
         :param prc: probability of checking whether there is a solution
         """
-        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc)
+        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN)
 
     def rrt_search(self):
         """
@@ -26,7 +27,7 @@ class RRT(RRTBase):
 
         while True:
             for q in self.Q:  # iterate over different edge lengths until solution found or time out
-                for i in range(q[1]):  # iterate over number of edges of given length to add
+                for i in np.arange(0, q[1], 1):# iterate over number of edges of given length to add
                     x_new, x_nearest = self.new_and_near(0, q)
 
                     if x_new is None:

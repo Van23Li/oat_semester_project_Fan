@@ -19,7 +19,7 @@ rewire_count = 32  # optional, number of nearby branches to rewire
 prc = 0.01  # probability of checking for a connection to goal
 
 # create Search Space
-X = SearchSpace(X_dimensions, Obstacles)
+X = SearchSpace(X_dimensions, Obstacles, X_dimensions)
 
 # create rrt_search
 rrt = RRTStarBidirectionalHeuristic(X, Q, x_init, x_goal, max_samples, r, prc, rewire_count)

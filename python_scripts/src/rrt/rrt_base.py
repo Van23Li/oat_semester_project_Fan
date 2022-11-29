@@ -4,10 +4,14 @@ import numpy as np
 
 from src.rrt.tree import Tree
 from src.utilities.geometry import steer
+from obs_checking.OptimalModulationDS.python_scripts.parse_matlab_network import Net
+import scipy.io as sio
+import torch
+from src.utilities.geometry import es_points_along_line
 
 
 class RRTBase(object):
-    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01):
+    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False):
         """
         Template RRT planner
         :param X: Search Space
@@ -28,6 +32,17 @@ class RRTBase(object):
         self.x_goal = x_goal
         self.trees = []  # list of all trees
         self.add_tree()  # add initial tree
+        self.Obstacles = Obstacles
+        self.CheckNN = CheckNN
+        if CheckNN:
+            mat_contents = sio.loadmat(
+                '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
+            W = mat_contents['W'][0]
+            b = mat_contents['b'][0]
+
+            # create net
+            self.net = Net()
+            self.net.setWeights(W, b)
 
     def add_tree(self):
         """
@@ -73,6 +88,11 @@ class RRTBase(object):
         """
         return next(self.nearby(tree, x, 1))
 
+    def collied_check(self, x_rand):
+        inp = np.concatenate([np.tile(x_rand, [len(self.Obstacles), 1]), self.Obstacles[:, 0:2]], axis=1)
+        val = self.net.forward(torch.Tensor(inp))
+        return (val.detach().numpy().reshape([1, -1]) > self.Obstacles[:, -1]).all()
+
     def new_and_near(self, tree, q):
         """
         Return a new steered vertex and the vertex in tree that is nearest
@@ -80,14 +100,39 @@ class RRTBase(object):
         :param q: length of edge when steering
         :return: vertex, new steered vertex, vertex, nearest vertex in tree to new vertex
         """
-        x_rand = self.X.sample_free()
-        x_nearest = self.get_nearest(tree, x_rand)
-        x_new = self.bound_point(steer(x_nearest, x_rand, q[0]))
-        # check if new point is in X_free and not already in V
-        if not self.trees[0].V.count(x_new) == 0 or not self.X.obstacle_free(x_new):
-            return None, None
-        self.samples_taken += 1
-        return x_new, x_nearest
+        if self.CheckNN:
+            while True:  # sample until not inside of an obstacle
+                x_rand = self.X.sample()
+                if self.collied_check(x_rand):
+                    break
+            x_nearest = self.get_nearest(tree, x_rand)
+            x_new = self.bound_point(steer(x_nearest, x_rand, q[0]))
+            # check if new point is in X_free and not already in V
+            if not self.trees[0].V.count(x_new) == 0 or not self.collied_check(x_new):
+                return None, None
+            self.samples_taken += 1
+            return x_new, x_nearest
+        else:
+            x_rand = self.X.sample_free()
+            x_nearest = self.get_nearest(tree, x_rand)
+            x_new = self.bound_point(steer(x_nearest, x_rand, q[0]))
+            # check if new point is in X_free and not already in V
+            if not self.trees[0].V.count(x_new) == 0 or not self.X.obstacle_free(x_new):
+                return None, None
+            self.samples_taken += 1
+            return x_new, x_nearest
+
+    def checkPath_kd(self, start, end, r):
+        """
+        Check if a line segment intersects an obstacle
+        :param start: starting point of line
+        :param end: ending point of line
+        :param r: resolution of points to sample along edge when checking for collisions
+        :return: True if line segment does not intersect an obstacle, False otherwise
+        """
+        points = es_points_along_line(start, end, r)
+        coll_free = all(map(self.collied_check, points))
+        return coll_free
 
     def connect_to_point(self, tree, x_a, x_b):
         """
@@ -97,10 +142,16 @@ class RRTBase(object):
         :param x_b: tuple, vertex
         :return: bool, True if able to add edge, False if prohibited by an obstacle
         """
-        if self.trees[tree].V.count(x_b) == 0 and self.X.collision_free(x_a, x_b, self.r):
-            self.add_vertex(tree, x_b)
-            self.add_edge(tree, x_b, x_a)
-            return True
+        if self.CheckNN:
+            if self.trees[tree].V.count(x_b) == 0 and self.checkPath_kd(x_a, x_b, self.r):
+                self.add_vertex(tree, x_b)
+                self.add_edge(tree, x_b, x_a)
+                return True
+        else:
+            if self.trees[tree].V.count(x_b) == 0 and self.X.collision_free(x_a, x_b, self.r):
+                self.add_vertex(tree, x_b)
+                self.add_edge(tree, x_b, x_a)
+                return True
         return False
 
     def can_connect_to_goal(self, tree):
@@ -113,8 +164,12 @@ class RRTBase(object):
         if self.x_goal in self.trees[tree].E and x_nearest in self.trees[tree].E[self.x_goal]:
             # tree is already connected to goal using nearest vertex
             return True
-        if self.X.collision_free(x_nearest, self.x_goal, self.r):  # check if obstacle-free
-            return True
+        if self.CheckNN:
+            if self.checkPath_kd(x_nearest, self.x_goal, self.r):  # check if obstacle-free
+                return True
+        else:
+            if self.X.collision_free(x_nearest, self.x_goal, self.r):  # check if obstacle-free
+                return True
         return False
 
     def get_path(self):

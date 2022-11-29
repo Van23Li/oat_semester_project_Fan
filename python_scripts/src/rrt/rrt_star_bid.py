@@ -5,10 +5,11 @@ import random
 
 from src.rrt.heuristics import path_cost
 from src.rrt.rrt_star import RRTStar
+import numpy as np
 
 
 class RRTStarBidirectional(RRTStar):
-    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, rewire_count=None):
+    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False, rewire_count=None):
         """
         Bidirectional RRT* Search
         :param X: Search Space
@@ -20,7 +21,7 @@ class RRTStarBidirectional(RRTStar):
         :param prc: probability of checking whether there is a solution
         :param rewire_count: number of nearby vertices to rewire
         """
-        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc, rewire_count)
+        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN, rewire_count)
         self.sigma_best = None  # best solution thus far
         self.swapped = False
 
@@ -35,7 +36,11 @@ class RRTStarBidirectional(RRTStar):
         """
         for c_near, x_near in L_near:
             c_tent = c_near + path_cost(self.trees[a].E, self.x_init, x_new)
-            if c_tent < self.c_best and self.X.collision_free(x_near, x_new, self.r):
+            if self.CheckNN:
+                coll_free = self.checkPath_kd(x_near, x_new, self.r)
+            else:
+                coll_free = self.X.collision_free(x_near, x_new, self.r)
+            if c_tent < self.c_best and coll_free:
                 self.trees[b].V_count += 1
                 self.trees[b].E[x_new] = x_near
                 self.c_best = c_tent
@@ -84,7 +89,7 @@ class RRTStarBidirectional(RRTStar):
 
         while True:
             for q in self.Q:  # iterate over different edge lengths
-                for i in range(q[1]):  # iterate over number of edges of given length to add
+                for i in np.arange(0, q[1], 1):  # iterate over number of edges of given length to add
                     x_new, x_nearest = self.new_and_near(0, q)
                     if x_new is None:
                         continue

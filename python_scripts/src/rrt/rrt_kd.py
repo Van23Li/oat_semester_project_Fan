@@ -7,7 +7,7 @@ import scipy.io as sio
 import torch
 
 class RRTKd(RRT):
-    def __init__(self, X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, Obstacles = None, prc=0.01, CheckNN=False):
+    def __init__(self, X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False):
         """
         RRT* Search
         :param X: Search Space
