@@ -24,8 +24,6 @@ a_min = (-10, -10)
 a_max = (10, 10)
 
 dim = 2
-X_dimensions = np.array([(q_min[0], q_max[1]), (q_min[0], q_max[1])])   # dimensions of Search Space
-V_dimensions = np.array([(v_min[0], v_max[1]), (v_min[0], v_max[1])])   # dimensions of Velocity Space
 x_init = (-2.5, -1)  # starting location
 x_goal = (2.7, 0)  # goal location
 v_init = (1, 0)  # starting location
@@ -40,8 +38,8 @@ max_samples = 2048  # max number of samples to take before timing out
 prc = 0.1  # probability of checking for a connection to goal
 
 # create search space
-X = SearchSpace(X_dimensions)
-V = SearchSpace(V_dimensions)
+X = SearchSpace(X_limits)
+V = SearchSpace(V_limits)
 n = 15
 # Obstacles = generate_random_obstacles(X, x_init, x_goal, n)
 Obstacles = np.array([[ 4.5,  3.5,  0.5],

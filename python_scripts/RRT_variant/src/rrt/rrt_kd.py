@@ -7,7 +7,7 @@ import scipy.io as sio
 import torch
 
 class RRTKd(RRT):
-    def __init__(self, X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False):
+    def __init__(self, X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False, Model=None):
         """
         RRT* Search
         :param X: Search Space
@@ -31,14 +31,17 @@ class RRTKd(RRT):
         self.Obstacles = Obstacles
         self.CheckNN = CheckNN
         if CheckNN:
-            mat_contents = sio.loadmat(
-                '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
-            W = mat_contents['W'][0]
-            b = mat_contents['b'][0]
+            if Model == "Panda":
+                a=3
+            else:
+                mat_contents = sio.loadmat(
+                    '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
+                W = mat_contents['W'][0]
+                b = mat_contents['b'][0]
 
-            # create net
-            self.net = Net()
-            self.net.setWeights(W, b)
+                # create net
+                self.net = Net()
+                self.net.setWeights(W, b)
 
         self.v_init = v_init
         self.v_goal = v_goal
