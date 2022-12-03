@@ -1,4 +1,0 @@
-ruckig
-matplotlib==3.4.3
-numpy==1.21.3
-pybullet==3.2.0
