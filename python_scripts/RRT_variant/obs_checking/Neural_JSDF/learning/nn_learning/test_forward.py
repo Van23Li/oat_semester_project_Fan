@@ -16,6 +16,6 @@ nn_model.load_weights('/Users/vanli/Documents/MATLAB/oat_semester_project_Fan/py
 nn_model.model.to(**tensor_args)
 model = nn_model.model
 # x = torch.tensor([[2.9632,  1.7820, -2.0959, -3.1082,  1.6234,  0.7221, -1.5457, -0.5558, 0.0828,  0.7472]], requires_grad=True)
-x = torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]], requires_grad=True)
+x = torch.tensor([[0.0, 0.0, 0.0, -2.0, 0.0, 0.0, 0.0, 0.02, 0, 0.2]], requires_grad=True)
 output1 = model.forward(x)
 a=6
