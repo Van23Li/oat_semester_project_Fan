@@ -3,7 +3,7 @@ import numpy as np
 
 
 class RRT(RRTBase):
-    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False):
+    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False, Model=None):
         """
         Template RRT planner
         :param X: Search Space
@@ -14,7 +14,7 @@ class RRT(RRTBase):
         :param r: resolution of points to sample along edge when checking for collisions
         :param prc: probability of checking whether there is a solution
         """
-        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN)
+        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN, Model)
 
     def rrt_search(self):
         """

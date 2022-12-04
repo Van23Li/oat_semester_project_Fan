@@ -51,22 +51,22 @@ class Net(nn.Module):
     #         result.append(x)
     #     return result
 
-#load weights
-mat_contents = sio.loadmat('../matlab_scripts/planar_robot_2d/data/net_parsed.mat')
-W = mat_contents['W'][0]
-b = mat_contents['b'][0]
-
-#create net
-net = Net()
-net.setWeights(W, b)
-x = torch.tensor([[0.0,0.0,0.0,1.0],[0.0,0.0,0.0,2.0],[0.0,0.0,0.0,3.0]], requires_grad=True)
-output1 = net.forward(x)
-
-gradient = torch.tensor([[1.0],[1.0],[1.0]])
-output1.backward(gradient=gradient) #反向传播
-dy2_dx2 = x.grad
-print(output1)
-print(dy2_dx2)
+# #load weights
+# mat_contents = sio.loadmat('../matlab_scripts/planar_robot_2d/data/net_parsed.mat')
+# W = mat_contents['W'][0]
+# b = mat_contents['b'][0]
+#
+# #create net
+# net = Net()
+# net.setWeights(W, b)
+# x = torch.tensor([[0.0,0.0,0.0,1.0],[0.0,0.0,0.0,2.0],[0.0,0.0,0.0,3.0]], requires_grad=True)
+# output1 = net.forward(x)
+#
+# gradient = torch.tensor([[1.0],[1.0],[1.0]])
+# output1.backward(gradient=gradient) #反向传播
+# dy2_dx2 = x.grad
+# print(output1)
+# print(dy2_dx2)
 
 
 ####################### Original code

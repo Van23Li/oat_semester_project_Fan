@@ -5,6 +5,7 @@ from src.rrt.tree import Tree
 from obs_checking.OptimalModulationDS.python_scripts.parse_matlab_network import Net
 import scipy.io as sio
 import torch
+from obs_checking.Neural_JSDF.learning.nn_learning.sdf.robot_sdf import RobotSdfCollisionNet
 
 class RRTKd(RRT):
     def __init__(self, X, V, X_limits, V_limits, A_limits, Q, x_init, x_goal, v_init, v_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False, Model=None):
@@ -23,25 +24,40 @@ class RRTKd(RRT):
         :param prc: probability of checking whether there is a solution
         :param rewire_count: number of nearby vertices to rewire
         """
-        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc)
+        super().__init__(X, Q, x_init, x_goal, max_samples, r, prc, Obstacles, CheckNN, Model)
         self.V = V
         self.X_limits = X_limits
         self.V_limits = V_limits
         self.A_limits = A_limits
-        self.Obstacles = Obstacles
-        self.CheckNN = CheckNN
-        if CheckNN:
-            if Model == "Panda":
-                a=3
-            else:
-                mat_contents = sio.loadmat(
-                    '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
-                W = mat_contents['W'][0]
-                b = mat_contents['b'][0]
-
-                # create net
-                self.net = Net()
-                self.net.setWeights(W, b)
+        # self.Obstacles = Obstacles
+        # self.CheckNN = CheckNN
+        # self.Model = Model
+        # if CheckNN:
+        #     if Model == "Panda":
+        #         device = torch.device('cpu')
+        #
+        #         s = 256
+        #         n_layers = 5
+        #         skips = []
+        #         if skips == []:
+        #             n_layers -= 1
+        #         tensor_args = {'device': device, 'dtype': torch.float32}
+        #         nn_model = RobotSdfCollisionNet(in_channels=10, out_channels=9, layers=[s] * n_layers, skips=skips)
+        #         nn_model.load_weights(
+        #             '../../obs_checking/Neural_JSDF/learning/nn_learning/sdf_256x5_mesh_origin.pt',
+        #             tensor_args)
+        #
+        #         nn_model.model.to(**tensor_args)
+        #         self.net = nn_model.model
+        #     else:
+        #         mat_contents = sio.loadmat(
+        #             '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
+        #         W = mat_contents['W'][0]
+        #         b = mat_contents['b'][0]
+        #
+        #         # create net
+        #         self.net = Net()
+        #         self.net.setWeights(W, b)
 
         self.v_init = v_init
         self.v_goal = v_goal
@@ -232,11 +248,6 @@ class RRTKd(RRT):
             self.add_edge_kd(tree, v_b, v_a)
             return True
         return False
-
-    def collied_check(self, x_rand):
-        inp = np.concatenate([np.tile(x_rand, [len(self.Obstacles), 1]), self.Obstacles[:, 0:2]], axis=1)
-        val = self.net.forward(torch.Tensor(inp))
-        return (val.detach().numpy().reshape([1, -1]) > self.Obstacles[:, -1]).all()
 
     def new(self):
         """

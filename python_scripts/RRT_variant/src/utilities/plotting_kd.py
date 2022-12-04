@@ -29,7 +29,7 @@ class Plot_kd(object):
         self.fig = {'data': self.data,
                     'layout': self.layout}
 
-    def plot_tree(self, X, trees, trees_v):
+    def plot_tree(self, X, trees, trees_v, dim1 = 0, dim = 1):
         """
         Plot tree
         :param X: Search Space
@@ -40,7 +40,7 @@ class Plot_kd(object):
         elif X.dimensions == 3:  # plot in 3D
             self.plot_tree_3d(trees)
         else:  # can't plot in higher dimensions
-            print("Cannot plot in > 3 dimensions")
+            self.plot_tree_highD(trees, dim1, dim)
 
     def dist_kd(self, p_1, v_1, p, v):
         """ from p_1 to p
@@ -193,6 +193,54 @@ class Plot_kd(object):
                         mode="lines"
                     )
                     self.data.append(trace)
+
+    def plot_tree_highD(self, trees, trees_v):
+        """
+        Plot 2D trees
+        :param trees: trees to plot
+        """
+        for Tree_x, Tree_v in zip(enumerate(trees), enumerate(trees_v)):
+            i_x, tree_x = Tree_x
+            i_v, tree_v = Tree_v
+            for value_x, value_v in zip(tree_x.E.items(), tree_v.E.items()):
+                start_x, end_x = value_x
+                start_v, end_v = value_v
+                if end_x is not None and end_v is not None:
+                    Time = self.dist_kd(end_x, end_v, start_x, start_v)
+                    a_1, v_limit, a_2, t_1, t_v, t_2 = self.Steer(end_x, end_v, start_x, start_v, Time)
+
+                    q_1_end = end_x + end_v * t_1 + 1 / 2 * a_1 * np.square(t_1)
+                    v_1_end = end_v + a_1 * t_1
+                    q_v_end = q_1_end + v_1_end * t_v
+                    v_v_end = v_1_end
+                    q_2_end = q_v_end + v_v_end * t_2 + 1 / 2 * a_2 * np.square(t_2)
+                    v_2_end = v_v_end + a_2 * t_2
+
+                    q_list = np.array(end_x)
+                    # q_list = np.empty([2, 1])
+                    for t in np.linspace(0, t_1[0] + t_v[0] + t_2[0], 100):
+                        if t != 0:
+                            q_check = np.array(end_x)
+                            for j in range(len(end_x)):
+                                if t < t_1[j]:
+                                    q_1 = end_x[j] + end_v[j] * t + 1 / 2 * a_1[j] * np.square(t)
+                                elif t < t_1[j] + t_v[j]:
+                                    q_1 = q_1_end[j] + v_1_end[j] * (t - t_1[j])
+                                else:
+                                    q_1 = q_v_end[j] + v_v_end[j] * (t - t_v[j] - t_1[j]) + 1 / 2 * a_2[j] * np.square(t - t_v[j] - t_1[j])
+                                q_check[j] = q_1
+                            q_list = np.append(q_list, q_check).reshape([-1,2])
+                    for i in range(len(q_list)-1):
+                        trace = go.Scatter(
+                            x=[q_list[i][0], q_list[i+1][0]],
+                            y=[q_list[i][1], q_list[i+1][1]],
+                            line=dict(
+                                color=colors[i_x]
+                            ),
+                            mode="lines"
+                        )
+                        self.data.append(trace)
+
 
     def plot_obstacles(self, X, O):
         """

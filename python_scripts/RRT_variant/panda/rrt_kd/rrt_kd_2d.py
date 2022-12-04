@@ -40,11 +40,10 @@ X = SearchSpace(X_limits)
 V = SearchSpace(V_limits)
 n = 15
 # Obstacles = generate_random_obstacles(X, x_init, x_goal, n)
-Obstacles = np.array([[ 4.5,  3.5,  0.5],
-                      [-6.0,  6.0,  1.0],
-                      [-6.0, -7.0,  2.0],
-                      [-3.0, -7.0,  2.0],
-                      [ 0.0, -7.0,  2.0]])  # [centers,radiuses]
+Obstacles = np.array([[ 0.5,  0.0,  0.6, 0.5],
+                      [-0.5,  0.0,  0.6, 1.0],
+                      [ 0.0,  0.5,  0.6, 2.0],
+                      [ 0.0, -0.5,  0.6, 2.0]])  # [centers,radiuses]
 
 Start_time = time.perf_counter()
 
@@ -58,12 +57,12 @@ print("Running time: ")
 print(End_time - Start_time)
 
 # plot
-# plot = Plot_kd("rrt_2d_with_random_obstacles", X_limits, V_limits, A_limits)
-# plot.plot_tree(X, rrt.trees, rrt.trees_v)
-# if path_x is not None and path_v is not None:
-#     plot.plot_path(X, path_x, path_v)
-# # plot.plot_obstacles(X, Obstacles)
-# plot.plot_obstacles_circle(X, Obstacles, 0.01*np.pi)
-# plot.plot_start(X, x_init)
-# plot.plot_goal(X, x_goal)
-# plot.draw(auto_open=True)
+plot = Plot_kd("rrt_2d_with_random_obstacles", X_limits, V_limits, A_limits)
+plot.plot_tree(X, rrt.trees, rrt.trees_v)
+if path_x is not None and path_v is not None:
+    plot.plot_path(X, path_x, path_v)
+# plot.plot_obstacles(X, Obstacles)
+plot.plot_obstacles_circle(X, Obstacles, 0.01*np.pi)
+plot.plot_start(X, x_init)
+plot.plot_goal(X, x_goal)
+plot.draw(auto_open=True)

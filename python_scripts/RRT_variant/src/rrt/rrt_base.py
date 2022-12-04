@@ -8,10 +8,11 @@ from obs_checking.OptimalModulationDS.python_scripts.parse_matlab_network import
 import scipy.io as sio
 import torch
 from src.utilities.geometry import es_points_along_line
+from obs_checking.Neural_JSDF.learning.nn_learning.sdf.robot_sdf import RobotSdfCollisionNet
 
 
 class RRTBase(object):
-    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False):
+    def __init__(self, X, Q, x_init, x_goal, max_samples, r, prc=0.01, Obstacles = None, CheckNN=False, Model=None):
         """
         Template RRT planner
         :param X: Search Space
@@ -34,15 +35,33 @@ class RRTBase(object):
         self.add_tree()  # add initial tree
         self.Obstacles = Obstacles
         self.CheckNN = CheckNN
+        self.Model = Model
         if CheckNN:
-            mat_contents = sio.loadmat(
-                '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
-            W = mat_contents['W'][0]
-            b = mat_contents['b'][0]
+            if Model == "Panda":
+                device = torch.device('cpu')
 
-            # create net
-            self.net = Net()
-            self.net.setWeights(W, b)
+                s = 256
+                n_layers = 5
+                skips = []
+                if skips == []:
+                    n_layers -= 1
+                tensor_args = {'device': device, 'dtype': torch.float32}
+                nn_model = RobotSdfCollisionNet(in_channels=10, out_channels=9, layers=[s] * n_layers, skips=skips)
+                nn_model.load_weights(
+                    '../../obs_checking/Neural_JSDF/learning/nn_learning/sdf_256x5_mesh_origin.pt',
+                    tensor_args)
+
+                nn_model.model.to(**tensor_args)
+                self.net = nn_model.model
+            else:
+                mat_contents = sio.loadmat(
+                    '../../obs_checking/OptimalModulationDS/matlab_scripts/planar_robot_2d/data/net_parsed.mat')
+                W = mat_contents['W'][0]
+                b = mat_contents['b'][0]
+
+                # create net
+                self.net = Net()
+                self.net.setWeights(W, b)
 
     def add_tree(self):
         """
@@ -89,9 +108,10 @@ class RRTBase(object):
         return next(self.nearby(tree, x, 1))
 
     def collied_check(self, x_rand):
-        inp = np.concatenate([np.tile(x_rand, [len(self.Obstacles), 1]), self.Obstacles[:, 0:2]], axis=1)
+        inp = np.concatenate([np.tile(x_rand, [len(self.Obstacles), 1]), self.Obstacles[:, 0:-1]], axis=1)
         val = self.net.forward(torch.Tensor(inp))
-        return (val.detach().numpy().reshape([1, -1]) > self.Obstacles[:, -1]).all()
+        # return (val.detach().numpy().reshape([1, -1]) > self.Obstacles[:, -1]).all()
+        return (np.min(val.detach().numpy(),axis=1).reshape([1,-1]) > self.Obstacles[:, -1]).all()
 
     def new_and_near(self, tree, q):
         """
