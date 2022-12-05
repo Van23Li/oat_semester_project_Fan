@@ -43,7 +43,7 @@ for i = 1:N_JPOS
     i
     jpos = q_rand(i,:);
     mesh_fk = meshes_fk(mesh, base, jpos);
-    pts_all = [0.02,0,0.2];
+    pts_all = [0.1, 0, 0];
 %     pts_all = [-0.5558, 0.0828,  0.7472];
 %     [int_pts, out_pts] = fk_transform(mesh, base, jpos);
 %     for j = 1:1:N_MESHES
